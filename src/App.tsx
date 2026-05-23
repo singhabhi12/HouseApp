@@ -267,6 +267,25 @@ export default function App() {
 
   const t = T[lang];
 
+  const [installPrompt, setInstallPrompt] = useState(null);
+  const [showIOSGuide, setShowIOSGuide] = useState(false);
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+  const isStandalone = window.matchMedia("(display-mode: standalone)").matches || (navigator as any).standalone === true;
+
+  useEffect(() => {
+    const handler = (e: Event) => { e.preventDefault(); setInstallPrompt(e as any); };
+    window.addEventListener("beforeinstallprompt", handler);
+    return () => window.removeEventListener("beforeinstallprompt", handler);
+  }, []);
+
+  function handleInstall() {
+    if (isIOS) { setShowIOSGuide(true); return; }
+    if (installPrompt) {
+      (installPrompt as any).prompt();
+      (installPrompt as any).userChoice.then(() => setInstallPrompt(null));
+    }
+  }
+
   useEffect(() => {
     try {
       const u = localStorage.getItem("g31_user");
@@ -312,8 +331,35 @@ export default function App() {
         <h1 style={{ fontSize: 32, fontWeight: 800, color: "#1a1a1a", margin: "0 0 12px", lineHeight: 1.2, whiteSpace: "pre-line" }}>{t.tagline}</h1>
         <p style={{ color: "#888", fontSize: 14, lineHeight: 1.6, marginBottom: 32 }}>{t.sub}</p>
         <button onClick={() => setPage("login")} style={{ width: "100%", padding: "16px 0", background: "#1a1a1a", border: "none", borderRadius: 50, color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer", marginBottom: 16 }}>{t.begin}</button>
+        {!isStandalone && (installPrompt || isIOS) && (
+          <button onClick={handleInstall} style={{ width: "100%", padding: "12px 0", background: "none", border: "1.5px solid #1a1a1a", borderRadius: 50, color: "#1a1a1a", fontSize: 14, fontWeight: 600, cursor: "pointer", marginBottom: 12 }}>
+            📲 {lang === "en" ? "Add to Home Screen" : "Zum Home-Bildschirm"}
+          </button>
+        )}
         <button onClick={toggleLang} style={{ background: "none", border: "1px solid #e5e5e5", borderRadius: 50, padding: "8px 20px", color: "#666", fontSize: 13, cursor: "pointer" }}>{lang === "en" ? "🇩🇪 Deutsch" : "🇬🇧 English"}</button>
       </div>
+
+      {/* iOS install guide */}
+      {showIOSGuide && (
+        <div onClick={() => setShowIOSGuide(false)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "flex-end", zIndex: 100 }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: "#fff", borderRadius: "20px 20px 0 0", padding: "28px 24px 40px", width: "100%", fontFamily: "-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" }}>
+            <div style={{ width: 40, height: 4, background: "#e0e0e0", borderRadius: 2, margin: "0 auto 24px" }} />
+            <div style={{ fontSize: 22, fontWeight: 800, marginBottom: 6 }}>📲 {lang === "en" ? "Add to Home Screen" : "Zum Home-Bildschirm"}</div>
+            <p style={{ color: "#888", fontSize: 14, marginBottom: 24 }}>{lang === "en" ? "Install this app for quick access — no App Store needed." : "App installieren für schnellen Zugriff — kein App Store nötig."}</p>
+            {[
+              { icon: "⬆️", text: lang === "en" ? 'Tap the Share button at the bottom of Safari' : 'Tippe auf Teilen unten in Safari' },
+              { icon: "➕", text: lang === "en" ? 'Scroll down and tap "Add to Home Screen"' : '"Zum Home-Bildschirm" antippen' },
+              { icon: "✅", text: lang === "en" ? 'Tap "Add" — done!' : '"Hinzufügen" tippen — fertig!' },
+            ].map((step, i) => (
+              <div key={i} style={{ display: "flex", gap: 14, alignItems: "flex-start", marginBottom: 16 }}>
+                <span style={{ fontSize: 22, flexShrink: 0 }}>{step.icon}</span>
+                <span style={{ fontSize: 15, color: "#333", lineHeight: 1.5 }}>{step.text}</span>
+              </div>
+            ))}
+            <button onClick={() => setShowIOSGuide(false)} style={{ width: "100%", marginTop: 8, padding: "14px 0", background: "#1a1a1a", border: "none", borderRadius: 50, color: "#fff", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>{lang === "en" ? "Got it" : "Verstanden"}</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 
