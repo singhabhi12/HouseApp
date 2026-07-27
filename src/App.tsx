@@ -46,6 +46,10 @@ const T = {
     outBy: "Put out by", putOut: "Put out by",
     thisWeek: "This week",
     closeLink: "Close Invite Link", linkClosed: "Invite link is closed. All residents have joined.",
+    reopenLink: "Reopen Invite Link",
+    linkClosedNote: "Invite link is closed — no new residents can join. If you already joined, pick your name to sign back in.",
+    welcomeBack: "Welcome back — select your name",
+    notJoined: "Never joined",
     signOut: "Sign out",
     calendarView: "Calendar", listView: "List",
     week: "Week of",
@@ -85,6 +89,10 @@ const T = {
     outBy: "Herausstellen bis", putOut: "Herausstellen bis",
     thisWeek: "Diese Woche",
     closeLink: "Einladungslink schließen", linkClosed: "Einladungslink geschlossen. Alle Bewohner sind beigetreten.",
+    reopenLink: "Einladungslink öffnen",
+    linkClosedNote: "Einladungslink geschlossen — keine neuen Bewohner. Wenn du schon beigetreten bist, wähle deinen Namen zum Anmelden.",
+    welcomeBack: "Willkommen zurück — wähle deinen Namen",
+    notJoined: "Nie beigetreten",
     signOut: "Abmelden",
     calendarView: "Kalender", listView: "Liste",
     week: "Woche",
@@ -338,9 +346,15 @@ export default function App() {
     setLang(nl);
     try { localStorage.setItem("g31_lang", nl); } catch {}
   }
-  function handleCloseLink() {
-    setLinkClosed(true);
-    try { localStorage.setItem("g31_closed", "true"); } catch {}
+  function toggleLink() {
+    const next = !linkClosed;
+    setLinkClosed(next);
+    try { localStorage.setItem("g31_closed", String(next)); } catch {}
+  }
+  // Closing the link keeps new people out — it must never lock out a resident who
+  // already joined on this device, or sign-out becomes a one-way door.
+  function canSignIn(name) {
+    return !linkClosed || joinedResidents.length === 0 || joinedResidents.includes(name);
   }
 
   const today = startOfDay(new Date());
@@ -409,26 +423,28 @@ export default function App() {
         <button onClick={() => setPage("splash")} style={{ background: "none", border: "none", color: "#999", cursor: "pointer", fontSize: 13, marginBottom: 20, padding: 0 }}>← {lang === "en" ? "Back" : "Zurück"}</button>
         <h2 style={{ fontSize: 26, fontWeight: 800, color: "#1a1a1a", marginBottom: 6 }}>Goethestrasse 31</h2>
         <p style={{ color: "#999", fontSize: 13, marginBottom: 24 }}>Pinneberg 25421</p>
-        {linkClosed && !user ? (
-          <div style={{ background: "#fef2f2", borderRadius: 12, padding: 20, textAlign: "center" }}>
-            <div style={{ fontSize: 32 }}>🔒</div>
-            <p style={{ color: "#dc2626", fontSize: 14, margin: "8px 0 0" }}>{t.linkClosed}</p>
+        {linkClosed && (
+          <div style={{ background: "#fef2f2", borderRadius: 12, padding: "12px 14px", marginBottom: 16, display: "flex", gap: 10, alignItems: "flex-start" }}>
+            <span style={{ fontSize: 15, lineHeight: 1.4 }}>🔒</span>
+            <p style={{ color: "#dc2626", fontSize: 12, margin: 0, lineHeight: 1.5 }}>{t.linkClosedNote}</p>
           </div>
-        ) : (
-          <>
-            <p style={{ color: "#666", fontSize: 13, marginBottom: 16 }}>{t.selectName}</p>
-            {RESIDENTS.map((name, i) => (
-              <button key={name} onClick={() => handleJoin(name)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", padding: "14px 16px", marginBottom: 8, background: "#f8f8f8", border: "1.5px solid #ececec", borderRadius: 12, cursor: "pointer", fontSize: 15, fontWeight: 600, color: "#1a1a1a" }}>
-                <span style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <span style={{ width: 36, height: 36, borderRadius: "50%", background: PERSON_BG[i], display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 700 }}>{PERSON_INITIALS(name)}</span>
-                  {name}
-                </span>
-                {joinedResidents.includes(name) && <span style={{ fontSize: 11, color: "#16a34a", fontWeight: 600 }}>✓ {lang === "en" ? "Joined" : "Beigetreten"}</span>}
-              </button>
-            ))}
-            <p style={{ color: "#bbb", fontSize: 12, textAlign: "center", marginTop: 12 }}>{joinedResidents.length}/5 {t.joined}</p>
-          </>
         )}
+        <p style={{ color: "#666", fontSize: 13, marginBottom: 16 }}>{linkClosed ? t.welcomeBack : t.selectName}</p>
+        {RESIDENTS.map((name, i) => {
+          const allowed = canSignIn(name);
+          return (
+            <button key={name} onClick={() => handleJoin(name)} disabled={!allowed} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", padding: "14px 16px", marginBottom: 8, background: "#f8f8f8", border: "1.5px solid #ececec", borderRadius: 12, cursor: allowed ? "pointer" : "not-allowed", fontSize: 15, fontWeight: 600, color: "#1a1a1a", opacity: allowed ? 1 : 0.45 }}>
+              <span style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <span style={{ width: 36, height: 36, borderRadius: "50%", background: PERSON_BG[i], display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 700 }}>{PERSON_INITIALS(name)}</span>
+                {name}
+              </span>
+              {joinedResidents.includes(name)
+                ? <span style={{ fontSize: 11, color: "#16a34a", fontWeight: 600 }}>✓ {lang === "en" ? "Joined" : "Beigetreten"}</span>
+                : !allowed && <span style={{ fontSize: 11, color: "#bbb", fontWeight: 600 }}>🔒 {t.notJoined}</span>}
+            </button>
+          );
+        })}
+        <p style={{ color: "#bbb", fontSize: 12, textAlign: "center", marginTop: 12 }}>{joinedResidents.length}/5 {t.joined}</p>
       </div>
     </div>
   );
@@ -453,8 +469,8 @@ export default function App() {
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <button onClick={toggleLang} style={{ background: "#f5f5f5", border: "none", borderRadius: 20, padding: "6px 12px", fontSize: 12, cursor: "pointer", fontWeight: 600 }}>{lang === "en" ? "🇩🇪 DE" : "🇬🇧 EN"}</button>
-          {!linkClosed && joinedResidents.length === 5 && (
-            <button onClick={handleCloseLink} style={{ background: "#1a1a1a", border: "none", borderRadius: 20, color: "#fff", padding: "6px 12px", cursor: "pointer", fontSize: 11, fontWeight: 600 }}>🔒</button>
+          {(linkClosed || joinedResidents.length === 5) && (
+            <button onClick={toggleLink} title={linkClosed ? t.reopenLink : t.closeLink} style={{ background: linkClosed ? "#f5f5f5" : "#1a1a1a", border: "none", borderRadius: 20, color: linkClosed ? "#888" : "#fff", padding: "6px 12px", cursor: "pointer", fontSize: 11, fontWeight: 600 }}>{linkClosed ? "🔓" : "🔒"}</button>
           )}
           <button onClick={() => { setUser(null); setPage("login"); try { localStorage.removeItem("g31_user"); } catch {} }} style={{ background: "#f5f5f5", border: "none", borderRadius: 20, color: "#888", padding: "6px 12px", cursor: "pointer", fontSize: 11 }}>{t.signOut}</button>
         </div>
