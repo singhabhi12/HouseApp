@@ -3,6 +3,15 @@ import { useState, useEffect } from "react";
 const RESIDENTS = ["Abhishek", "Vishwa", "Anas", "Arunima", "Vahhuli"];
 const RESIDENT_COLORS = { Abhishek: "#1a1a1a", Vishwa: "#1a1a1a", Anas: "#1a1a1a", Arunima: "#1a1a1a", Vahhuli: "#1a1a1a" };
 
+// Duties are compared by calendar date, never by clock time — otherwise a duty
+// silently rolls over at midnight on its own last day.
+const startOfDay = (d) => { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; };
+const daysBetween = (from, to) => Math.round((startOfDay(to).getTime() - startOfDay(from).getTime()) / 86400000);
+// A duty week runs Monday through the end of Sunday.
+const isInTrashWeek = (td, date) => { const n = daysBetween(td.startDay, date); return n >= 0 && n <= 6; };
+// Anything further out than this stays hidden on the home screen.
+const LOOKAHEAD_DAYS = 7;
+
 const T = {
   en: {
     appName: "Goethestrasse 31",
@@ -14,7 +23,16 @@ const T = {
     selectName: "Select your name to continue",
     home: "Home", rules: "Rules", cleaning: "Cleaning", trash: "Trash", waste: "Waste", laws: "Laws",
     trashThisWeek: "Trash Duty This Week",
+    trashNextWeek: "Trash Duty Next Week",
+    noTrashDuty: "No Trash Duty",
+    noTrashDutySub: "Nothing scheduled for this week.",
     nextCleaning: "Next Cleaning Day",
+    cleaningToday: "Cleaning Day — Today",
+    noCleaningThisWeek: "No Cleaning This Week",
+    nextCleaningOn: "Next cleaning day",
+    noCleaningPlanned: "Nothing else scheduled this year.",
+    inDays: (n) => (n === 1 ? "in 1 day" : `in ${n} days`),
+    tomorrow: "Tomorrow",
     quickReminders: "Quick Reminders",
     rem1: "Quiet hours: 22:00–07:00 & Sundays all day",
     rem2: "Squeegee the shower glass after every shower",
@@ -44,7 +62,16 @@ const T = {
     selectName: "Wähle deinen Namen aus",
     home: "Start", rules: "Regeln", cleaning: "Reinigung", trash: "Müll", waste: "Trennung", laws: "Gesetze",
     trashThisWeek: "Müllpflicht diese Woche",
+    trashNextWeek: "Müllpflicht nächste Woche",
+    noTrashDuty: "Keine Müllpflicht",
+    noTrashDutySub: "Diese Woche ist nichts geplant.",
     nextCleaning: "Nächster Reinigungstag",
+    cleaningToday: "Reinigungstag — Heute",
+    noCleaningThisWeek: "Diese Woche keine Reinigung",
+    nextCleaningOn: "Nächster Reinigungstag",
+    noCleaningPlanned: "Dieses Jahr ist nichts mehr geplant.",
+    inDays: (n) => (n === 1 ? "in 1 Tag" : `in ${n} Tagen`),
+    tomorrow: "Morgen",
     quickReminders: "Schnelle Erinnerungen",
     rem1: "Ruhezeiten: 22:00–07:00 & Sonntags ganztägig",
     rem2: "Duschwand nach jeder Dusche abziehen",
@@ -157,7 +184,7 @@ const TRASH_DUTY = [
   { week: "09–15 Nov", person: "Abhishek", collections: ["Mon 09 Nov: Gelbe Tonne","Tue 10 Nov: Papiertonne","Wed 11 Nov: Restmüll"], putOut: "Sun 08 Nov, 20:00", startDay: new Date(2026,10,9) },
   { week: "16–22 Nov", person: "Vishwa", collections: ["Wed 18 Nov: Biotonne"], putOut: "Tue 17 Nov, 20:00", startDay: new Date(2026,10,16) },
   { week: "23–29 Nov", person: "Anas", collections: ["Mon 23 Nov: Gelbe Tonne","Wed 25 Nov: Restmüll"], putOut: "Sun 22 Nov, 20:00", startDay: new Date(2026,10,23) },
-  { week: "30 Nov–06 Dec", person: "Arunima", collections: ["Wed 02 Dec: Biotonne"], putOut: "Tue 01 Dec, 20:00", startDay: new Date(2026,11,30) },
+  { week: "30 Nov–06 Dec", person: "Arunima", collections: ["Wed 02 Dec: Biotonne"], putOut: "Tue 01 Dec, 20:00", startDay: new Date(2026,10,30) },
   { week: "07–13 Dec", person: "Vahhuli", collections: ["Mon 07 Dec: Gelbe Tonne","Tue 08 Dec: Papiertonne","Wed 09 Dec: Restmüll"], putOut: "Sun 06 Dec, 20:00", startDay: new Date(2026,11,7) },
   { week: "14–20 Dec", person: "Abhishek", collections: ["Wed 16 Dec: Biotonne","Sat 19 Dec: Gelbe Tonne"], putOut: "Tue 15 Dec, 20:00", startDay: new Date(2026,11,14) },
   { week: "21–27 Dec", person: "Vishwa", collections: ["Tue 22 Dec: Restmüll"], putOut: "Mon 21 Dec, 20:00", startDay: new Date(2026,11,21) },
@@ -316,9 +343,21 @@ export default function App() {
     try { localStorage.setItem("g31_closed", "true"); } catch {}
   }
 
-  const today = new Date();
-  const currentTrash = TRASH_DUTY.find(t => { const e = new Date(t.startDay); e.setDate(e.getDate()+6); return today >= t.startDay && today <= e; }) || TRASH_DUTY[19];
-  const nextClean = CLEANING_ROTATION.find(r => r.day >= today) || CLEANING_ROTATION[0];
+  const today = startOfDay(new Date());
+
+  // The week that today falls in — stays put through the whole Sunday.
+  const currentTrash = TRASH_DUTY.find(td => isInTrashWeek(td, today));
+  // Only outside the published weeks do we look ahead, and never further than a week.
+  const upcomingTrash = currentTrash ? null : TRASH_DUTY.find(td => {
+    const n = daysBetween(today, td.startDay);
+    return n > 0 && n <= LOOKAHEAD_DAYS;
+  });
+  const trashDuty = currentTrash || upcomingTrash;
+
+  // The cleaning day itself counts all day; the one after it only surfaces a week ahead.
+  const nextClean = CLEANING_ROTATION.find(r => daysBetween(today, r.day) >= 0);
+  const daysToClean = nextClean ? daysBetween(today, nextClean.day) : null;
+  const cleanIsDue = nextClean && daysToClean <= LOOKAHEAD_DAYS;
 
   const btnStyle = (active) => ({ padding: "10px 0", flex: 1, background: active ? "#1a1a1a" : "transparent", border: "none", borderRadius: 8, color: active ? "#fff" : "#999", cursor: "pointer", fontSize: 12, fontWeight: 600, transition: "all 0.15s" });
   const cardStyle = { background: "#fff", borderRadius: 16, padding: 20, marginBottom: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.07)" };
@@ -442,22 +481,46 @@ export default function App() {
 
           {/* Trash */}
           <div style={{ ...cardStyle, borderLeft: "4px solid #f59e0b" }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: "#f59e0b", marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>{t.trashThisWeek}</div>
-            <div style={{ fontSize: 28, fontWeight: 800, marginBottom: 4 }}>{currentTrash.person}</div>
-            <div style={{ fontSize: 13, color: "#888", marginBottom: 10 }}>{t.week}: {currentTrash.week}</div>
-            {currentTrash.collections.map((c,i) => <div key={i} style={{ fontSize: 13, color: "#555", padding: "3px 0" }}>• {c}</div>)}
-            <div style={{ marginTop: 10, fontSize: 12, fontWeight: 600, color: "#f59e0b" }}>{t.outBy}: {currentTrash.putOut}</div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: "#f59e0b", marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>
+              {currentTrash ? t.trashThisWeek : trashDuty ? t.trashNextWeek : t.noTrashDuty}
+            </div>
+            {trashDuty ? (
+              <>
+                <div style={{ fontSize: 28, fontWeight: 800, marginBottom: 4 }}>{trashDuty.person}</div>
+                <div style={{ fontSize: 13, color: "#888", marginBottom: 10 }}>{t.week}: {trashDuty.week}</div>
+                {trashDuty.collections.map((c,i) => <div key={i} style={{ fontSize: 13, color: "#555", padding: "3px 0" }}>• {c}</div>)}
+                <div style={{ marginTop: 10, fontSize: 12, fontWeight: 600, color: "#f59e0b" }}>{t.outBy}: {trashDuty.putOut}</div>
+              </>
+            ) : (
+              <div style={{ fontSize: 13, color: "#888" }}>{t.noTrashDutySub}</div>
+            )}
           </div>
 
           {/* Cleaning */}
           <div style={{ ...cardStyle, borderLeft: "4px solid #16a34a" }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: "#16a34a", marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>{t.nextCleaning} — {nextClean.date} 2026</div>
-            {RESIDENTS.map(n => (
-              <div key={n} style={{ display: "flex", justifyContent: "space-between", padding: "5px 0", borderBottom: "1px solid #f5f5f5", fontSize: 14 }}>
-                <span style={{ fontWeight: n === user ? 700 : 400 }}>{n}</span>
-                <span style={{ color: "#666" }}>{nextClean[n]}</span>
-              </div>
-            ))}
+            {cleanIsDue ? (
+              <>
+                <div style={{ fontSize: 12, fontWeight: 700, color: "#16a34a", marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>
+                  {daysToClean === 0 ? t.cleaningToday : `${t.nextCleaning} — ${nextClean.date} 2026`}
+                </div>
+                {daysToClean > 0 && (
+                  <div style={{ fontSize: 12, color: "#888", marginBottom: 8 }}>{daysToClean === 1 ? t.tomorrow : t.inDays(daysToClean)}</div>
+                )}
+                {RESIDENTS.map(n => (
+                  <div key={n} style={{ display: "flex", justifyContent: "space-between", padding: "5px 0", borderBottom: "1px solid #f5f5f5", fontSize: 14 }}>
+                    <span style={{ fontWeight: n === user ? 700 : 400 }}>{n}</span>
+                    <span style={{ color: "#666" }}>{nextClean[n]}</span>
+                  </div>
+                ))}
+              </>
+            ) : (
+              <>
+                <div style={{ fontSize: 12, fontWeight: 700, color: "#16a34a", marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>{t.noCleaningThisWeek}</div>
+                <div style={{ fontSize: 13, color: "#888" }}>
+                  {nextClean ? `${t.nextCleaningOn}: ${nextClean.date} 2026 · ${t.inDays(daysToClean)}` : t.noCleaningPlanned}
+                </div>
+              </>
+            )}
           </div>
 
           {/* Reminders */}
@@ -582,8 +645,7 @@ export default function App() {
           )}
 
           {trashView === "list" && TRASH_DUTY.map((td, i) => {
-            const end = new Date(td.startDay); end.setDate(end.getDate()+6);
-            const isCurr = today >= td.startDay && today <= end;
+            const isCurr = isInTrashWeek(td, today);
             return (
               <div key={i} style={{ ...cardStyle, marginBottom: 8, padding: "14px 18px", border: isCurr ? "2px solid #1a1a1a" : "2px solid transparent", position: "relative" }}>
                 {isCurr && <span style={{ position: "absolute", top: 14, right: 14, background: "#1a1a1a", color: "#fff", fontSize: 10, padding: "3px 8px", borderRadius: 20, fontWeight: 700 }}>{t.thisWeek}</span>}
