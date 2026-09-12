@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import Issues from "./Issues";
 
 const RESIDENTS = ["Abhishek", "Vishwa", "Anas", "Arunima", "Eesha"];
 const RESIDENT_COLORS = { Abhishek: "#1a1a1a", Vishwa: "#1a1a1a", Anas: "#1a1a1a", Arunima: "#1a1a1a", Eesha: "#1a1a1a" };
@@ -24,7 +25,7 @@ const T = {
     residents: "Residents",
     joined: "joined",
     selectName: "Select your name to continue",
-    home: "Home", rules: "Rules", duty: "Duties", cleaning: "Cleaning", trash: "Trash", waste: "Waste", laws: "Laws",
+    home: "Home", rules: "Rules", duty: "Duties", cleaning: "Cleaning", trash: "Trash", waste: "Waste", laws: "Laws", issues: "Issues",
     trashThisWeek: "Trash Duty This Week",
     trashNextWeek: "Trash Duty Next Week",
     noTrashDuty: "No Trash Duty",
@@ -68,7 +69,7 @@ const T = {
     residents: "Bewohner",
     joined: "beigetreten",
     selectName: "Wähle deinen Namen aus",
-    home: "Start", rules: "Regeln", duty: "Pflichten", cleaning: "Reinigung", trash: "Müll", waste: "Trennung", laws: "Gesetze",
+    home: "Start", rules: "Regeln", duty: "Pflichten", cleaning: "Reinigung", trash: "Müll", waste: "Trennung", laws: "Gesetze", issues: "Probleme",
     trashThisWeek: "Müllpflicht diese Woche",
     trashNextWeek: "Müllpflicht nächste Woche",
     noTrashDuty: "Keine Müllpflicht",
@@ -483,6 +484,7 @@ export default function App() {
     { id: "duty", emoji: "🧹", label: t.duty },
     { id: "waste", emoji: "♻", label: t.waste },
     { id: "laws", emoji: "⚖", label: t.laws },
+    { id: "issues", emoji: "🔧", label: t.issues },
   ];
 
   return (
@@ -767,6 +769,9 @@ export default function App() {
             </div>
           ))}
         </>}
+
+        {/* ISSUES */}
+        {activePage === "issues" && <Issues user={user} lang={lang} cardStyle={cardStyle} />}
 
       </div>
 
