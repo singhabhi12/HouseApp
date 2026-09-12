@@ -480,7 +480,7 @@ export default function App() {
 
   // APP
   const navItems = [
-    { id: "home", emoji: "⌂", label: t.home },
+    { id: "home", emoji: "🏠", label: t.home },
     { id: "rules", emoji: "📋", label: t.rules },
     { id: "duty", emoji: "🧹", label: t.duty },
     { id: "issues", emoji: "🔧", label: t.issues },
