@@ -360,7 +360,20 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [joinedResidents, setJoinedResidents] = useState([]);
   const [linkClosed, setLinkClosed] = useState(false);
-  const [activePage, setActivePage] = useState("home");
+  const [activePage, setActivePage] = useState(() => {
+    try { return new URLSearchParams(window.location.search).get("page") === "issues" ? "issues" : "home"; } catch { return "home"; }
+  });
+  // Unread dot on the Issues tab: any issue newer than the last one seen on this device.
+  const [latestIssueId, setLatestIssueId] = useState(0);
+  const [seenIssueId, setSeenIssueId] = useState(() => { try { return Number(localStorage.getItem("g31_issues_seen") || 0); } catch { return 0; } });
+  const noteIssues = (list) => { const max = Math.max(0, ...list.map((i) => i.id)); setLatestIssueId((v) => Math.max(v, max)); };
+  useEffect(() => { fetch("/api/issues").then((r) => (r.ok ? r.json() : [])).then(noteIssues).catch(() => {}); }, []);
+  useEffect(() => {
+    if (activePage !== "issues" || latestIssueId <= seenIssueId) return;
+    setSeenIssueId(latestIssueId);
+    try { localStorage.setItem("g31_issues_seen", String(latestIssueId)); } catch {}
+  }, [activePage, latestIssueId]);
+  const hasUnreadIssues = latestIssueId > seenIssueId;
   const [lang, setLang] = useState("en");
   const [expandedRule, setExpandedRule] = useState(null);
   const [expandedLaw, setExpandedLaw] = useState(null);
@@ -886,7 +899,7 @@ export default function App() {
         </>}
 
         {/* ISSUES */}
-        {activePage === "issues" && <Issues user={user} lang={lang} cardStyle={cardStyle} />}
+        {activePage === "issues" && <Issues user={user} lang={lang} cardStyle={cardStyle} onLoaded={noteIssues} />}
 
       </div>
 
@@ -894,7 +907,10 @@ export default function App() {
       <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, background: "#fff", borderTop: "1px solid #f0f0f0", display: "flex", padding: "8px 4px 12px", zIndex: 50 }}>
         {navItems.map(n => (
           <button key={n.id} onClick={() => setActivePage(n.id)} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3, background: "none", border: "none", cursor: "pointer", padding: "4px 0" }}>
-            <span style={{ fontSize: 18 }}>{n.emoji}</span>
+            <span style={{ fontSize: 18, position: "relative" }}>
+              {n.emoji}
+              {n.id === "issues" && hasUnreadIssues && activePage !== "issues" && <span style={{ position: "absolute", top: -2, right: -6, width: 8, height: 8, borderRadius: 4, background: "#dc2626", border: "2px solid #fff" }} />}
+            </span>
             <span style={{ fontSize: 10, fontWeight: 600, color: activePage === n.id ? "#1a1a1a" : "#bbb" }}>{n.label}</span>
           </button>
         ))}

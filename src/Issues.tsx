@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { pushSupported, isIOS, isStandalone, getSubscription, subscribe, unsubscribe } from "./push";
 
 export const ISSUE_SECTIONS = [
   { id: "Kitchen", en: "Kitchen", de: "Küche", emoji: "🍳" },
@@ -16,6 +17,10 @@ const TXT = {
     submit: "Report issue", submitting: "Sending…", open: "Open", resolved: "Resolved", markResolved: "Mark resolved", reopen: "Reopen",
     delete: "Delete", confirmDelete: "Delete this issue?", empty: "No issues reported yet. 🎉", loading: "Loading issues…", loadError: "Couldn't load issues. Pull to retry.",
     retry: "Retry", by: "by", photoTooBig: "Photo could not be processed.", sendError: "Couldn't send — check your connection and try again.",
+    notifTitle: "Notifications", notifOn: "You'll be notified on this device when an issue is reported.", notifOff: "Get a notification on this device when someone reports an issue.",
+    notifEnable: "Turn on", notifDisable: "Turn off", notifDenied: "Notifications are blocked for this site — enable them in your browser/phone settings.",
+    notifIOS: "On iPhone: add this app to your Home Screen first (Share → Add to Home Screen), then open it from there to turn on notifications.",
+    notifUnsupported: "This browser doesn't support notifications.",
   },
   de: {
     title: "Probleme", reportTitle: "Problem melden", section: "Wo ist es?", describe: "Was ist los?",
@@ -23,6 +28,10 @@ const TXT = {
     submit: "Problem melden", submitting: "Senden…", open: "Offen", resolved: "Erledigt", markResolved: "Als erledigt markieren", reopen: "Wieder öffnen",
     delete: "Löschen", confirmDelete: "Dieses Problem löschen?", empty: "Noch keine Probleme gemeldet. 🎉", loading: "Lade Probleme…", loadError: "Probleme konnten nicht geladen werden.",
     retry: "Erneut versuchen", by: "von", photoTooBig: "Foto konnte nicht verarbeitet werden.", sendError: "Senden fehlgeschlagen — bitte Verbindung prüfen.",
+    notifTitle: "Benachrichtigungen", notifOn: "Du wirst auf diesem Gerät benachrichtigt, wenn ein Problem gemeldet wird.", notifOff: "Erhalte auf diesem Gerät eine Benachrichtigung, wenn jemand ein Problem meldet.",
+    notifEnable: "Einschalten", notifDisable: "Ausschalten", notifDenied: "Benachrichtigungen sind für diese Seite blockiert — bitte in den Browser-/Handy-Einstellungen erlauben.",
+    notifIOS: "Auf dem iPhone: App zuerst zum Home-Bildschirm hinzufügen (Teilen → Zum Home-Bildschirm), dann von dort öffnen und Benachrichtigungen einschalten.",
+    notifUnsupported: "Dieser Browser unterstützt keine Benachrichtigungen.",
   },
 };
 
@@ -49,7 +58,7 @@ function formatWhen(iso: string, lang: string) {
     d.toLocaleTimeString(lang === "de" ? "de-DE" : "en-GB", { hour: "2-digit", minute: "2-digit" });
 }
 
-export default function Issues({ user, lang, cardStyle }: { user: string; lang: string; cardStyle: any }) {
+export default function Issues({ user, lang, cardStyle, onLoaded }: { user: string; lang: string; cardStyle: any; onLoaded?: (issues: Issue[]) => void }) {
   const t = TXT[lang === "de" ? "de" : "en"];
   const [issues, setIssues] = useState<Issue[] | null>(null);
   const [loadFailed, setLoadFailed] = useState(false);
@@ -61,13 +70,33 @@ export default function Issues({ user, lang, cardStyle }: { user: string; lang: 
   const [lightbox, setLightbox] = useState<number | null>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const [pushState, setPushState] = useState<"unsupported" | "ios-browser" | "off" | "on" | "denied" | "busy">("busy");
+
+  useEffect(() => {
+    if (!pushSupported()) { setPushState(isIOS() && !isStandalone() ? "ios-browser" : "unsupported"); return; }
+    if (Notification.permission === "denied") { setPushState("denied"); return; }
+    getSubscription().then((sub) => setPushState(sub ? "on" : "off")).catch(() => setPushState("off"));
+  }, []);
+
+  async function togglePush() {
+    const prev = pushState;
+    setPushState("busy");
+    try {
+      if (prev === "on") { await unsubscribe(); setPushState("off"); }
+      else { await subscribe(user); setPushState("on"); }
+    } catch (e: any) {
+      setPushState(e?.message === "denied" || Notification.permission === "denied" ? "denied" : prev);
+    }
+  }
 
   async function load() {
     setLoadFailed(false);
     try {
       const r = await fetch("/api/issues");
       if (!r.ok) throw new Error();
-      setIssues(await r.json());
+      const list: Issue[] = await r.json();
+      setIssues(list);
+      onLoaded?.(list);
     } catch { setLoadFailed(true); }
   }
   useEffect(() => { load(); }, []);
@@ -91,6 +120,7 @@ export default function Issues({ user, lang, cardStyle }: { user: string; lang: 
       if (!r.ok) throw new Error();
       const created: Issue = await r.json();
       setIssues((prev) => [created, ...(prev ?? [])]);
+      onLoaded?.([created]);
       setSection(null); setDescription(""); setPhoto(null);
     } catch { setError(t.sendError); }
     finally { setSending(false); }
@@ -99,7 +129,7 @@ export default function Issues({ user, lang, cardStyle }: { user: string; lang: 
   async function setStatus(issue: Issue, status: "open" | "resolved") {
     setBusyId(issue.id);
     try {
-      const r = await fetch(`/api/issues/${issue.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status }) });
+      const r = await fetch(`/api/issues/${issue.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status, by: user }) });
       if (!r.ok) throw new Error();
       const updated: Issue = await r.json();
       setIssues((prev) => (prev ?? []).map((i) => (i.id === updated.id ? updated : i)));
@@ -158,6 +188,22 @@ export default function Issues({ user, lang, cardStyle }: { user: string; lang: 
   return (
     <>
       <h2 style={{ fontSize: 26, fontWeight: 800, marginBottom: 20 }}>{t.title}</h2>
+
+      {/* Notifications */}
+      <div style={{ ...cardStyle, padding: "14px 18px", display: "flex", alignItems: "center", gap: 12 }}>
+        <span style={{ fontSize: 22 }}>{pushState === "on" ? "🔔" : "🔕"}</span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontWeight: 700, fontSize: 14 }}>{t.notifTitle}</div>
+          <div style={{ fontSize: 12, color: "#888", marginTop: 2 }}>
+            {pushState === "on" ? t.notifOn : pushState === "denied" ? t.notifDenied : pushState === "ios-browser" ? t.notifIOS : pushState === "unsupported" ? t.notifUnsupported : t.notifOff}
+          </div>
+        </div>
+        {(pushState === "on" || pushState === "off" || pushState === "busy") && (
+          <button disabled={pushState === "busy"} onClick={togglePush} style={{ ...btn(pushState !== "on"), flexShrink: 0, opacity: pushState === "busy" ? 0.6 : 1 }}>
+            {pushState === "on" ? t.notifDisable : t.notifEnable}
+          </button>
+        )}
+      </div>
 
       {/* Report form */}
       <div style={cardStyle}>

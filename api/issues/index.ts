@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { db, json, SECTIONS, RESIDENTS, MAX_PHOTO_BYTES } from "../_db.js";
+import { notify } from "../_push.js";
 
 export const config = { api: { bodyParser: { sizeLimit: "5mb" } } };
 
@@ -36,6 +37,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       VALUES (${section}, ${text}, ${reportedBy}, ${bytes}, ${type})
       RETURNING id, section, description, reported_by, status, created_at, resolved_at, (photo IS NOT NULL) AS has_photo
     `;
+    await notify(
+      { title: `🔧 ${section} issue`, body: `${reportedBy}: ${text.length > 120 ? text.slice(0, 117) + "…" : text}`, url: "/?page=issues", tag: `issue-${row.id}` },
+      { exclude: [reportedBy] },
+    );
     return json(res, 201, row);
   }
 

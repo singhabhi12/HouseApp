@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { db, json } from "../_db.js";
+import { notify } from "../_push.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   const id = Number(req.query.id);
@@ -16,6 +17,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       RETURNING id, section, description, reported_by, status, created_at, resolved_at, (photo IS NOT NULL) AS has_photo
     `;
     if (!row) return json(res, 404, { error: "Not found" });
+    if (status === "resolved" && req.body?.by !== row.reported_by) {
+      await notify(
+        { title: `✓ ${row.section} issue resolved`, body: row.description.length > 120 ? row.description.slice(0, 117) + "…" : row.description, url: "/?page=issues", tag: `issue-${row.id}` },
+        { only: [row.reported_by] },
+      );
+    }
     return json(res, 200, row);
   }
 
