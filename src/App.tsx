@@ -25,7 +25,7 @@ const T = {
     residents: "Residents",
     joined: "joined",
     selectName: "Select your name to continue",
-    home: "Home", rules: "Rules", duty: "Duties", cleaning: "Cleaning", trash: "Trash", waste: "Waste", laws: "Laws", issues: "Issues",
+    home: "Home", rules: "Rules", duty: "Duties", cleaning: "Cleaning", trash: "Trash", waste: "Waste", laws: "Laws", issues: "Issues", houseTab: "House", wasteTab: "Waste", lawsTab: "Laws",
     trashThisWeek: "Trash Duty This Week",
     trashNextWeek: "Trash Duty Next Week",
     noTrashDuty: "No Trash Duty",
@@ -69,7 +69,7 @@ const T = {
     residents: "Bewohner",
     joined: "beigetreten",
     selectName: "Wähle deinen Namen aus",
-    home: "Start", rules: "Regeln", duty: "Pflichten", cleaning: "Reinigung", trash: "Müll", waste: "Trennung", laws: "Gesetze", issues: "Probleme",
+    home: "Start", rules: "Regeln", duty: "Pflichten", cleaning: "Reinigung", trash: "Müll", waste: "Trennung", laws: "Gesetze", issues: "Probleme", houseTab: "Haus", wasteTab: "Müll", lawsTab: "Gesetze",
     trashThisWeek: "Müllpflicht diese Woche",
     trashNextWeek: "Müllpflicht nächste Woche",
     noTrashDuty: "Keine Müllpflicht",
@@ -302,6 +302,7 @@ export default function App() {
   const [selectedWaste, setSelectedWaste] = useState(0);
   const [expandedCleanRow, setExpandedCleanRow] = useState(null);
   const [dutyTab, setDutyTab] = useState("cleaning");
+  const [rulesTab, setRulesTab] = useState("house");
   const [trashView, setTrashView] = useState("list");
   const [cleanView, setCleanView] = useState("list");
   const [calMonth, setCalMonth] = useState(4); // May
@@ -482,8 +483,6 @@ export default function App() {
     { id: "home", emoji: "⌂", label: t.home },
     { id: "rules", emoji: "📋", label: t.rules },
     { id: "duty", emoji: "🧹", label: t.duty },
-    { id: "waste", emoji: "♻", label: t.waste },
-    { id: "laws", emoji: "⚖", label: t.laws },
     { id: "issues", emoji: "🔧", label: t.issues },
   ];
 
@@ -580,8 +579,17 @@ export default function App() {
 
         {/* RULES */}
         {activePage === "rules" && <>
-          <h2 style={{ fontSize: 26, fontWeight: 800, marginBottom: 6 }}>{t.houseRules}</h2>
-          <p style={{ color: "#999", fontSize: 13, marginBottom: 20 }}>{t.hausordnung}</p>
+          <h2 style={{ fontSize: 26, fontWeight: 800, marginBottom: 12 }}>{t.rules}</h2>
+          <div style={{ display: "flex", gap: 8, position: "sticky", top: HEADER_H, zIndex: 40, background: "#f5f5f5", margin: "0 -16px 8px", padding: "8px 16px 12px" }}>
+            {[["house", "📋", t.houseTab], ["waste", "♻", t.wasteTab], ["laws", "⚖", t.lawsTab]].map(([id, emoji, label]) => (
+              <button key={id} onClick={() => setRulesTab(id)} style={{ flex: 1, padding: "12px 8px", background: rulesTab === id ? "#1a1a1a" : "#fff", color: rulesTab === id ? "#fff" : "#666", border: rulesTab === id ? "2px solid #1a1a1a" : "2px solid #e5e5e5", borderRadius: 12, cursor: "pointer", fontSize: 13, fontWeight: 700 }}>{emoji} {label}</button>
+            ))}
+          </div>
+        </>}
+
+        {activePage === "rules" && rulesTab === "house" && <>
+          <div style={{ fontSize: 17, fontWeight: 800, marginBottom: 4 }}>{t.houseRules}</div>
+          <p style={{ color: "#999", fontSize: 13, marginBottom: 16 }}>{t.hausordnung}</p>
           {HOUSE_RULES.map((r, i) => (
             <div key={i} onClick={() => setExpandedRule(expandedRule === i ? null : i)} style={{ ...cardStyle, cursor: "pointer", marginBottom: 8, padding: "16px 20px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -716,8 +724,8 @@ export default function App() {
         </>}
 
         {/* WASTE */}
-        {activePage === "waste" && <>
-          <h2 style={{ fontSize: 26, fontWeight: 800, marginBottom: 20 }}>{t.wasteGuide}</h2>
+        {activePage === "rules" && rulesTab === "waste" && <>
+          <div style={{ fontSize: 17, fontWeight: 800, marginBottom: 16 }}>{t.wasteGuide}</div>
           <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
             {WASTE_GUIDE.map((w, i) => (
               <button key={i} onClick={() => setSelectedWaste(i)} style={{ padding: "10px 16px", borderRadius: 50, border: selectedWaste === i ? "2px solid #1a1a1a" : "2px solid #e5e5e5", background: selectedWaste === i ? "#1a1a1a" : "#fff", color: selectedWaste === i ? "#fff" : "#666", cursor: "pointer", fontSize: 13, fontWeight: 600 }}>
@@ -750,8 +758,8 @@ export default function App() {
         </>}
 
         {/* LAWS */}
-        {activePage === "laws" && <>
-          <h2 style={{ fontSize: 26, fontWeight: 800, marginBottom: 20 }}>{t.germanlaws}</h2>
+        {activePage === "rules" && rulesTab === "laws" && <>
+          <div style={{ fontSize: 17, fontWeight: 800, marginBottom: 16 }}>{t.germanlaws}</div>
           {GERMAN_LAWS.map((l, i) => (
             <div key={i} onClick={() => setExpandedLaw(expandedLaw === i ? null : i)} style={{ ...cardStyle, cursor: "pointer", marginBottom: 8, padding: "16px 20px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
