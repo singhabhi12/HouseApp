@@ -44,7 +44,7 @@ const T = {
     rem3: "Switch off lights when leaving a room",
     houseRules: "House Rules", hausordnung: "Hausordnung",
     cleaningSchedule: "Cleaning Schedule", cleaningSub: "Every 2 weeks on Saturday. Corridors/stairs only on Saturdays.",
-    trashDuty: "Trash Duty 2026", trashSub: "Put all bins out by 20:00 the evening before pickup.",
+    trashDuty: "Trash Duty", trashSub: "Put all bins out by 20:00 the evening before pickup.",
     wasteGuide: "Waste Separation Guide",
     germanlaws: "German Rules & Laws",
     yesGoes: "✓ YES — Goes here", noGoes: "✗ NO — Does not go here",
@@ -88,7 +88,7 @@ const T = {
     rem3: "Licht beim Verlassen des Raumes ausschalten",
     houseRules: "Hausordnung", hausordnung: "House Rules",
     cleaningSchedule: "Reinigungsplan", cleaningSub: "Alle 2 Wochen samstags. Flure/Treppen nur samstags.",
-    trashDuty: "Müllpflicht 2026", trashSub: "Alle Tonnen bis 20:00 Uhr am Vorabend herausstellen.",
+    trashDuty: "Müllpflicht", trashSub: "Alle Tonnen bis 20:00 Uhr am Vorabend herausstellen.",
     wasteGuide: "Mülltrennung",
     germanlaws: "Deutsche Regeln & Gesetze",
     yesGoes: "✓ JA — Gehört hier rein", noGoes: "✗ NEIN — Gehört nicht hier rein",
@@ -140,6 +140,14 @@ const CLEANING_ROTATION: { date: string; day: Date; bio?: string; [resident: str
   { date: "28 Nov", day: new Date(2026,10,28), Abhishek: "Hall/Dining", Vishwa: "Upper WC", Anas: "Kitchen", Arunima: "Common", Eesha: "Lower WC" },
   { date: "12 Dec", day: new Date(2026,11,12), Abhishek: "Lower WC", Vishwa: "Hall/Dining", Anas: "Common", Arunima: "Upper WC", Eesha: "Kitchen" },
   { date: "26 Dec", day: new Date(2026,11,26), Abhishek: "Kitchen", Vishwa: "Lower WC", Anas: "Upper WC", Arunima: "Hall/Dining", Eesha: "Common" },
+  { date: "09 Jan", day: new Date(2027,0,9), Abhishek: "Common", Vishwa: "Kitchen", Anas: "Hall/Dining", Arunima: "Lower WC", Eesha: "Upper WC" },
+  { date: "23 Jan", day: new Date(2027,0,23), Abhishek: "Upper WC", Vishwa: "Common", Anas: "Lower WC", Arunima: "Kitchen", Eesha: "Hall/Dining" },
+  { date: "06 Feb", day: new Date(2027,1,6), Abhishek: "Hall/Dining", Vishwa: "Upper WC", Anas: "Kitchen", Arunima: "Common", Eesha: "Lower WC" },
+  { date: "20 Feb", day: new Date(2027,1,20), Abhishek: "Lower WC", Vishwa: "Hall/Dining", Anas: "Common", Arunima: "Upper WC", Eesha: "Kitchen" },
+  { date: "06 Mar", day: new Date(2027,2,6), Abhishek: "Kitchen", Vishwa: "Lower WC", Anas: "Upper WC", Arunima: "Hall/Dining", Eesha: "Common" },
+  { date: "20 Mar", day: new Date(2027,2,20), Abhishek: "Common", Vishwa: "Kitchen", Anas: "Hall/Dining", Arunima: "Lower WC", Eesha: "Upper WC" },
+  { date: "03 Apr", day: new Date(2027,3,3), Abhishek: "Upper WC", Vishwa: "Common", Anas: "Lower WC", Arunima: "Kitchen", Eesha: "Hall/Dining" },
+  { date: "17 Apr", day: new Date(2027,3,17), Abhishek: "Hall/Dining", Vishwa: "Upper WC", Anas: "Kitchen", Arunima: "Common", Eesha: "Lower WC" },
 ];
 
 // Bio dustbin duty is an extra job on each cleaning day. It goes to whoever has
@@ -217,6 +225,24 @@ const TRASH_DUTY = [
   { week: "14–20 Dec", person: "Abhishek", collections: ["Wed 16 Dec: Biotonne","Sat 19 Dec: Gelbe Tonne"], putOut: "Tue 15 Dec, 20:00", startDay: new Date(2026,11,14) },
   { week: "21–27 Dec", person: "Vishwa", collections: ["Tue 22 Dec: Restmüll"], putOut: "Mon 21 Dec, 20:00", startDay: new Date(2026,11,21) },
   { week: "28 Dec–03 Jan", person: "Anas", collections: ["Wed 30 Dec: Biotonne"], putOut: "Tue 29 Dec, 20:00", startDay: new Date(2026,11,28) },
+  // 2027 — pickup days extrapolated from the 2026 pattern (Easter week shifted +1 day). Check against the official Abfallkalender once published.
+  { week: "04–10 Jan", person: "Arunima", collections: ["Mon 04 Jan: Gelbe Tonne","Tue 05 Jan: Papiertonne","Wed 06 Jan: Restmüll"], putOut: "Sun 03 Jan, 20:00", startDay: new Date(2027,0,4) },
+  { week: "11–17 Jan", person: "Eesha", collections: ["Wed 13 Jan: Biotonne"], putOut: "Tue 12 Jan, 20:00", startDay: new Date(2027,0,11) },
+  { week: "18–24 Jan", person: "Abhishek", collections: ["Mon 18 Jan: Gelbe Tonne","Wed 20 Jan: Restmüll"], putOut: "Sun 17 Jan, 20:00", startDay: new Date(2027,0,18) },
+  { week: "25–31 Jan", person: "Vishwa", collections: ["Wed 27 Jan: Biotonne"], putOut: "Tue 26 Jan, 20:00", startDay: new Date(2027,0,25) },
+  { week: "01–07 Feb", person: "Anas", collections: ["Mon 01 Feb: Gelbe Tonne","Tue 02 Feb: Papiertonne","Wed 03 Feb: Restmüll"], putOut: "Sun 31 Jan, 20:00", startDay: new Date(2027,1,1) },
+  { week: "08–14 Feb", person: "Arunima", collections: ["Wed 10 Feb: Biotonne"], putOut: "Tue 09 Feb, 20:00", startDay: new Date(2027,1,8) },
+  { week: "15–21 Feb", person: "Eesha", collections: ["Mon 15 Feb: Gelbe Tonne","Wed 17 Feb: Restmüll"], putOut: "Sun 14 Feb, 20:00", startDay: new Date(2027,1,15) },
+  { week: "22–28 Feb", person: "Abhishek", collections: ["Wed 24 Feb: Biotonne"], putOut: "Tue 23 Feb, 20:00", startDay: new Date(2027,1,22) },
+  { week: "01–07 Mar", person: "Vishwa", collections: ["Mon 01 Mar: Gelbe Tonne","Tue 02 Mar: Papiertonne","Wed 03 Mar: Restmüll"], putOut: "Sun 28 Feb, 20:00", startDay: new Date(2027,2,1) },
+  { week: "08–14 Mar", person: "Anas", collections: ["Wed 10 Mar: Biotonne"], putOut: "Tue 09 Mar, 20:00", startDay: new Date(2027,2,8) },
+  { week: "15–21 Mar", person: "Arunima", collections: ["Mon 15 Mar: Gelbe Tonne","Wed 17 Mar: Restmüll"], putOut: "Sun 14 Mar, 20:00", startDay: new Date(2027,2,15) },
+  { week: "22–28 Mar", person: "Eesha", collections: ["Wed 24 Mar: Biotonne"], putOut: "Tue 23 Mar, 20:00", startDay: new Date(2027,2,22) },
+  { week: "29 Mar–04 Apr", person: "Abhishek", collections: ["Tue 30 Mar: Gelbe Tonne","Wed 31 Mar: Papiertonne","Thu 01 Apr: Restmüll"], putOut: "Mon 29 Mar, 20:00", startDay: new Date(2027,2,29) },
+  { week: "05–11 Apr", person: "Vishwa", collections: ["Wed 07 Apr: Biotonne"], putOut: "Tue 06 Apr, 20:00", startDay: new Date(2027,3,5) },
+  { week: "12–18 Apr", person: "Anas", collections: ["Mon 12 Apr: Gelbe Tonne","Wed 14 Apr: Restmüll"], putOut: "Sun 11 Apr, 20:00", startDay: new Date(2027,3,12) },
+  { week: "19–25 Apr", person: "Arunima", collections: ["Wed 21 Apr: Biotonne"], putOut: "Tue 20 Apr, 20:00", startDay: new Date(2027,3,19) },
+  { week: "26 Apr–02 May", person: "Eesha", collections: ["Mon 26 Apr: Gelbe Tonne","Tue 27 Apr: Papiertonne","Wed 28 Apr: Restmüll"], putOut: "Sun 25 Apr, 20:00", startDay: new Date(2027,3,26) },
 ];
 
 const WASTE_GUIDE = [
@@ -238,6 +264,12 @@ const GERMAN_LAWS = [
 const PERSON_INITIALS = n => n[0];
 const PERSON_BG = ["#e8e8e8","#d4d4d4","#c0c0c0","#acacac","#989898"];
 
+// Calendars count months from Jan 2026 so they can run into 2027.
+const CAL_START_YEAR = 2026;
+const CAL_MONTHS = 16; // Jan 2026 – Apr 2027
+const monthIndex = (d: Date) => Math.min(CAL_MONTHS - 1, Math.max(0, (d.getFullYear() - CAL_START_YEAR) * 12 + d.getMonth()));
+const calYear = (i: number) => CAL_START_YEAR + Math.floor(i / 12);
+const calMonthOf = (i: number) => i % 12;
 const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 const MONTHS_DE = ["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
 
@@ -319,8 +351,8 @@ export default function App() {
   const [rulesTab, setRulesTab] = useState("house");
   const [trashView, setTrashView] = useState("list");
   const [cleanView, setCleanView] = useState("list");
-  const [calMonth, setCalMonth] = useState(4); // May
-  const [cleanCalMonth, setCleanCalMonth] = useState(4);
+  const [calMonth, setCalMonth] = useState(monthIndex(new Date()));
+  const [cleanCalMonth, setCleanCalMonth] = useState(monthIndex(new Date()));
   const currentCleanRef = useRef(null);
   const currentTrashRef = useRef(null);
 
@@ -404,14 +436,14 @@ export default function App() {
   // Opening a schedule should land on the current card, not the top of the year.
   useEffect(() => {
     if (activePage !== "duty" || dutyTab !== "cleaning" || !nextClean) return;
-    setCleanCalMonth(nextClean.day.getMonth());
+    setCleanCalMonth(monthIndex(nextClean.day));
     if (cleanView !== "list") return;
     setExpandedCleanRow(nextCleanIdx);
     currentCleanRef.current?.scrollIntoView({ block: "start" });
   }, [activePage, dutyTab, cleanView]);
   useEffect(() => {
     if (activePage !== "duty" || dutyTab !== "trash" || trashScrollIdx < 0) return;
-    setCalMonth(TRASH_DUTY[trashScrollIdx].startDay.getMonth());
+    setCalMonth(monthIndex(TRASH_DUTY[trashScrollIdx].startDay));
     if (trashView !== "list") return;
     currentTrashRef.current?.scrollIntoView({ block: "start" });
   }, [activePage, dutyTab, trashView]);
@@ -558,7 +590,7 @@ export default function App() {
             {cleanIsDue ? (
               <>
                 <div style={{ fontSize: 12, fontWeight: 700, color: "#16a34a", marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>
-                  {daysToClean === 0 ? t.cleaningToday : `${t.nextCleaning} — ${nextClean.date} 2026`}
+                  {daysToClean === 0 ? t.cleaningToday : `${t.nextCleaning} — ${nextClean.date} ${nextClean.day.getFullYear()}`}
                 </div>
                 {daysToClean > 0 && (
                   <div style={{ fontSize: 12, color: "#888", marginBottom: 8 }}>{daysToClean === 1 ? t.tomorrow : t.inDays(daysToClean)}</div>
@@ -574,7 +606,7 @@ export default function App() {
               <>
                 <div style={{ fontSize: 12, fontWeight: 700, color: "#16a34a", marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>{t.noCleaningThisWeek}</div>
                 <div style={{ fontSize: 13, color: "#888" }}>
-                  {nextClean ? `${t.nextCleaningOn}: ${nextClean.date} 2026 · ${t.inDays(daysToClean)}` : t.noCleaningPlanned}
+                  {nextClean ? `${t.nextCleaningOn}: ${nextClean.date} ${nextClean.day.getFullYear()} · ${t.inDays(daysToClean)}` : t.noCleaningPlanned}
                 </div>
               </>
             )}
@@ -646,12 +678,12 @@ export default function App() {
             <div style={cardStyle}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
                 <button onClick={() => setCleanCalMonth(m => Math.max(0, m-1))} style={{ background: "#f5f5f5", border: "none", borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontSize: 16 }}>‹</button>
-                <span style={{ fontWeight: 700, fontSize: 16 }}>{lang === "en" ? MONTHS[cleanCalMonth] : MONTHS_DE[cleanCalMonth]} 2026</span>
-                <button onClick={() => setCleanCalMonth(m => Math.min(11, m+1))} style={{ background: "#f5f5f5", border: "none", borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontSize: 16 }}>›</button>
+                <span style={{ fontWeight: 700, fontSize: 16 }}>{lang === "en" ? MONTHS[calMonthOf(cleanCalMonth)] : MONTHS_DE[calMonthOf(cleanCalMonth)]} {calYear(cleanCalMonth)}</span>
+                <button onClick={() => setCleanCalMonth(m => Math.min(CAL_MONTHS - 1, m+1))} style={{ background: "#f5f5f5", border: "none", borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontSize: 16 }}>›</button>
               </div>
-              <CalendarMonth year={2026} month={cleanCalMonth} trashData={[]} cleanData={CLEANING_ROTATION} lang={lang} user={user} />
+              <CalendarMonth year={calYear(cleanCalMonth)} month={calMonthOf(cleanCalMonth)} trashData={[]} cleanData={CLEANING_ROTATION} lang={lang} user={user} />
               <div style={{ marginTop: 16, borderTop: "1px solid #f0f0f0", paddingTop: 16 }}>
-                {CLEANING_ROTATION.filter(r => r.day.getMonth() === cleanCalMonth).map((r, i) => (
+                {CLEANING_ROTATION.filter(r => monthIndex(r.day) === cleanCalMonth).map((r, i) => (
                   <div key={i} style={{ padding: "10px 0", borderBottom: "1px solid #f5f5f5" }}>
                     <div style={{ fontWeight: 700, fontSize: 14 }}>{r.date} — <span style={{ color: "#16a34a" }}>{r[user]}{r.bio === user && ` + ${t.bioBin}`}</span></div>
                   </div>
@@ -663,7 +695,7 @@ export default function App() {
           {cleanView === "list" && CLEANING_ROTATION.map((row, i) => (
             <div key={i} ref={i === nextCleanIdx ? currentCleanRef : null} style={{ ...cardStyle, marginBottom: 8, padding: "14px 18px", cursor: "pointer", scrollMarginTop: SCROLL_TOP, border: i === nextCleanIdx ? "2px solid #1a1a1a" : "2px solid transparent" }} onClick={() => setExpandedCleanRow(expandedCleanRow === i ? null : i)}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontWeight: 700, fontSize: 15 }}>{row.date} 2026{i === nextCleanIdx && <span style={{ marginLeft: 8, fontSize: 10, fontWeight: 700, color: "#fff", background: "#1a1a1a", borderRadius: 20, padding: "2px 8px", verticalAlign: "middle" }}>{daysToClean === 0 ? t.today : t.next}</span>}</span>
+                <span style={{ fontWeight: 700, fontSize: 15 }}>{row.date} {row.day.getFullYear()}{i === nextCleanIdx && <span style={{ marginLeft: 8, fontSize: 10, fontWeight: 700, color: "#fff", background: "#1a1a1a", borderRadius: 20, padding: "2px 8px", verticalAlign: "middle" }}>{daysToClean === 0 ? t.today : t.next}</span>}</span>
                 <span style={{ color: "#ccc", fontSize: 18 }}>{expandedCleanRow === i ? "−" : "+"}</span>
               </div>
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8 }}>
@@ -702,12 +734,12 @@ export default function App() {
             <div style={cardStyle}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
                 <button onClick={() => setCalMonth(m => Math.max(0, m-1))} style={{ background: "#f5f5f5", border: "none", borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontSize: 16 }}>‹</button>
-                <span style={{ fontWeight: 700, fontSize: 16 }}>{lang === "en" ? MONTHS[calMonth] : MONTHS_DE[calMonth]} 2026</span>
-                <button onClick={() => setCalMonth(m => Math.min(11, m+1))} style={{ background: "#f5f5f5", border: "none", borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontSize: 16 }}>›</button>
+                <span style={{ fontWeight: 700, fontSize: 16 }}>{lang === "en" ? MONTHS[calMonthOf(calMonth)] : MONTHS_DE[calMonthOf(calMonth)]} {calYear(calMonth)}</span>
+                <button onClick={() => setCalMonth(m => Math.min(CAL_MONTHS - 1, m+1))} style={{ background: "#f5f5f5", border: "none", borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontSize: 16 }}>›</button>
               </div>
-              <CalendarMonth year={2026} month={calMonth} trashData={TRASH_DUTY} cleanData={[]} lang={lang} user={user} />
+              <CalendarMonth year={calYear(calMonth)} month={calMonthOf(calMonth)} trashData={TRASH_DUTY} cleanData={[]} lang={lang} user={user} />
               <div style={{ marginTop: 16, borderTop: "1px solid #f0f0f0", paddingTop: 16 }}>
-                {TRASH_DUTY.filter(td => td.startDay.getMonth() === calMonth || (td.startDay.getMonth() === calMonth - 1 && new Date(td.startDay.getTime() + 6*86400000).getMonth() === calMonth)).map((td, i) => (
+                {TRASH_DUTY.filter(td => monthIndex(td.startDay) === calMonth || monthIndex(new Date(td.startDay.getTime() + 6*86400000)) === calMonth).map((td, i) => (
                   <div key={i} style={{ padding: "8px 0", borderBottom: "1px solid #f5f5f5", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <div>
                       <div style={{ fontWeight: 700, fontSize: 13 }}>{td.week}</div>
