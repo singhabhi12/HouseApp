@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 const RESIDENTS = ["Abhishek", "Vishwa", "Anas", "Arunima", "Eesha"];
 const RESIDENT_COLORS = { Abhishek: "#1a1a1a", Vishwa: "#1a1a1a", Anas: "#1a1a1a", Arunima: "#1a1a1a", Eesha: "#1a1a1a" };
@@ -21,12 +21,13 @@ const T = {
     residents: "Residents",
     joined: "joined",
     selectName: "Select your name to continue",
-    home: "Home", rules: "Rules", cleaning: "Cleaning", trash: "Trash", waste: "Waste", laws: "Laws",
+    home: "Home", rules: "Rules", duty: "Duties", cleaning: "Cleaning", trash: "Trash", waste: "Waste", laws: "Laws",
     trashThisWeek: "Trash Duty This Week",
     trashNextWeek: "Trash Duty Next Week",
     noTrashDuty: "No Trash Duty",
     noTrashDutySub: "Nothing scheduled for this week.",
     nextCleaning: "Next Cleaning Day",
+    today: "Today", next: "Next",
     cleaningToday: "Cleaning Day — Today",
     noCleaningThisWeek: "No Cleaning This Week",
     nextCleaningOn: "Next cleaning day",
@@ -64,12 +65,13 @@ const T = {
     residents: "Bewohner",
     joined: "beigetreten",
     selectName: "Wähle deinen Namen aus",
-    home: "Start", rules: "Regeln", cleaning: "Reinigung", trash: "Müll", waste: "Trennung", laws: "Gesetze",
+    home: "Start", rules: "Regeln", duty: "Pflichten", cleaning: "Reinigung", trash: "Müll", waste: "Trennung", laws: "Gesetze",
     trashThisWeek: "Müllpflicht diese Woche",
     trashNextWeek: "Müllpflicht nächste Woche",
     noTrashDuty: "Keine Müllpflicht",
     noTrashDutySub: "Diese Woche ist nichts geplant.",
     nextCleaning: "Nächster Reinigungstag",
+    today: "Heute", next: "Nächste",
     cleaningToday: "Reinigungstag — Heute",
     noCleaningThisWeek: "Diese Woche keine Reinigung",
     nextCleaningOn: "Nächster Reinigungstag",
@@ -295,10 +297,13 @@ export default function App() {
   const [expandedLaw, setExpandedLaw] = useState(null);
   const [selectedWaste, setSelectedWaste] = useState(0);
   const [expandedCleanRow, setExpandedCleanRow] = useState(null);
+  const [dutyTab, setDutyTab] = useState("cleaning");
   const [trashView, setTrashView] = useState("list");
   const [cleanView, setCleanView] = useState("list");
   const [calMonth, setCalMonth] = useState(4); // May
   const [cleanCalMonth, setCleanCalMonth] = useState(4);
+  const currentCleanRef = useRef(null);
+  const currentTrashRef = useRef(null);
 
   const t = T[lang];
 
@@ -369,11 +374,28 @@ export default function App() {
     return n > 0 && n <= LOOKAHEAD_DAYS;
   });
   const trashDuty = currentTrash || upcomingTrash;
+  const trashScrollIdx = TRASH_DUTY.findIndex(td => isInTrashWeek(td, today) || daysBetween(today, td.startDay) > 0);
 
   // The cleaning day itself counts all day; the one after it only surfaces a week ahead.
-  const nextClean = CLEANING_ROTATION.find(r => daysBetween(today, r.day) >= 0);
+  const nextCleanIdx = CLEANING_ROTATION.findIndex(r => daysBetween(today, r.day) >= 0);
+  const nextClean = nextCleanIdx >= 0 ? CLEANING_ROTATION[nextCleanIdx] : undefined;
   const daysToClean = nextClean ? daysBetween(today, nextClean.day) : null;
   const cleanIsDue = nextClean && daysToClean <= LOOKAHEAD_DAYS;
+
+  // Opening a schedule should land on the current card, not the top of the year.
+  useEffect(() => {
+    if (activePage !== "duty" || dutyTab !== "cleaning" || !nextClean) return;
+    setCleanCalMonth(nextClean.day.getMonth());
+    if (cleanView !== "list") return;
+    setExpandedCleanRow(nextCleanIdx);
+    currentCleanRef.current?.scrollIntoView({ block: "start" });
+  }, [activePage, dutyTab, cleanView]);
+  useEffect(() => {
+    if (activePage !== "duty" || dutyTab !== "trash" || trashScrollIdx < 0) return;
+    setCalMonth(TRASH_DUTY[trashScrollIdx].startDay.getMonth());
+    if (trashView !== "list") return;
+    currentTrashRef.current?.scrollIntoView({ block: "start" });
+  }, [activePage, dutyTab, trashView]);
 
   const btnStyle = (active) => ({ padding: "10px 0", flex: 1, background: active ? "#1a1a1a" : "transparent", border: "none", borderRadius: 8, color: active ? "#fff" : "#999", cursor: "pointer", fontSize: 12, fontWeight: 600, transition: "all 0.15s" });
   const cardStyle = { background: "#fff", borderRadius: 16, padding: 20, marginBottom: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.07)" };
@@ -455,8 +477,7 @@ export default function App() {
   const navItems = [
     { id: "home", emoji: "⌂", label: t.home },
     { id: "rules", emoji: "📋", label: t.rules },
-    { id: "cleaning", emoji: "🧹", label: t.cleaning },
-    { id: "trash", emoji: "🗑", label: t.trash },
+    { id: "duty", emoji: "🧹", label: t.duty },
     { id: "waste", emoji: "♻", label: t.waste },
     { id: "laws", emoji: "⚖", label: t.laws },
   ];
@@ -578,8 +599,16 @@ export default function App() {
         </>}
 
         {/* CLEANING */}
-        {activePage === "cleaning" && <>
-          <h2 style={{ fontSize: 26, fontWeight: 800, marginBottom: 6 }}>{t.cleaningSchedule}</h2>
+        {activePage === "duty" && <>
+          <h2 style={{ fontSize: 26, fontWeight: 800, marginBottom: 12 }}>{t.duty}</h2>
+          <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+            {[["cleaning", "🧹", t.cleaning], ["trash", "🗑", t.trash]].map(([id, emoji, label]) => (
+              <button key={id} onClick={() => setDutyTab(id)} style={{ flex: 1, padding: "12px 8px", background: dutyTab === id ? "#1a1a1a" : "#fff", color: dutyTab === id ? "#fff" : "#666", border: dutyTab === id ? "2px solid #1a1a1a" : "2px solid #e5e5e5", borderRadius: 12, cursor: "pointer", fontSize: 13, fontWeight: 700 }}>{emoji} {label}</button>
+            ))}
+          </div>
+        </>}
+
+        {activePage === "duty" && dutyTab === "cleaning" && <>
           <p style={{ color: "#999", fontSize: 13, marginBottom: 16 }}>{t.cleaningSub}</p>
           <div style={{ display: "flex", background: "#f0f0f0", borderRadius: 10, padding: 4, marginBottom: 20 }}>
             <button onClick={() => setCleanView("list")} style={btnStyle(cleanView === "list")}>{t.listView}</button>
@@ -605,9 +634,9 @@ export default function App() {
           )}
 
           {cleanView === "list" && CLEANING_ROTATION.map((row, i) => (
-            <div key={i} style={{ ...cardStyle, marginBottom: 8, padding: "14px 18px", cursor: "pointer" }} onClick={() => setExpandedCleanRow(expandedCleanRow === i ? null : i)}>
+            <div key={i} ref={i === nextCleanIdx ? currentCleanRef : null} style={{ ...cardStyle, marginBottom: 8, padding: "14px 18px", cursor: "pointer", scrollMarginTop: 76, border: i === nextCleanIdx ? "2px solid #1a1a1a" : "2px solid transparent" }} onClick={() => setExpandedCleanRow(expandedCleanRow === i ? null : i)}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontWeight: 700, fontSize: 15 }}>{row.date} 2026</span>
+                <span style={{ fontWeight: 700, fontSize: 15 }}>{row.date} 2026{i === nextCleanIdx && <span style={{ marginLeft: 8, fontSize: 10, fontWeight: 700, color: "#fff", background: "#1a1a1a", borderRadius: 20, padding: "2px 8px", verticalAlign: "middle" }}>{daysToClean === 0 ? t.today : t.next}</span>}</span>
                 <span style={{ color: "#ccc", fontSize: 18 }}>{expandedCleanRow === i ? "−" : "+"}</span>
               </div>
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8 }}>
@@ -632,8 +661,7 @@ export default function App() {
         </>}
 
         {/* TRASH */}
-        {activePage === "trash" && <>
-          <h2 style={{ fontSize: 26, fontWeight: 800, marginBottom: 6 }}>{t.trashDuty}</h2>
+        {activePage === "duty" && dutyTab === "trash" && <>
           <p style={{ color: "#999", fontSize: 13, marginBottom: 16 }}>{t.trashSub}</p>
           <div style={{ display: "flex", background: "#f0f0f0", borderRadius: 10, padding: 4, marginBottom: 20 }}>
             <button onClick={() => setTrashView("list")} style={btnStyle(trashView === "list")}>{t.listView}</button>
@@ -665,7 +693,7 @@ export default function App() {
           {trashView === "list" && TRASH_DUTY.map((td, i) => {
             const isCurr = isInTrashWeek(td, today);
             return (
-              <div key={i} style={{ ...cardStyle, marginBottom: 8, padding: "14px 18px", border: isCurr ? "2px solid #1a1a1a" : "2px solid transparent", position: "relative" }}>
+              <div key={i} ref={i === trashScrollIdx ? currentTrashRef : null} style={{ ...cardStyle, marginBottom: 8, padding: "14px 18px", border: isCurr ? "2px solid #1a1a1a" : "2px solid transparent", position: "relative", scrollMarginTop: 76 }}>
                 {isCurr && <span style={{ position: "absolute", top: 14, right: 14, background: "#1a1a1a", color: "#fff", fontSize: 10, padding: "3px 8px", borderRadius: 20, fontWeight: 700 }}>{t.thisWeek}</span>}
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                   <div>
