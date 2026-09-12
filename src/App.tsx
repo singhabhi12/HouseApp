@@ -8,6 +8,9 @@ const RESIDENT_COLORS = { Abhishek: "#1a1a1a", Vishwa: "#1a1a1a", Anas: "#1a1a1a
 const startOfDay = (d) => { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; };
 const daysBetween = (from, to) => Math.round((startOfDay(to).getTime() - startOfDay(from).getTime()) / 86400000);
 // A duty week runs Monday through the end of Sunday.
+// Sticky header height, and the offset a scrolled-to card needs to clear header + duty switcher.
+const HEADER_H = 62;
+const SCROLL_TOP = HEADER_H + 72;
 const isInTrashWeek = (td, date) => { const n = daysBetween(td.startDay, date); return n >= 0 && n <= 6; };
 // Anything further out than this stays hidden on the home screen.
 const LOOKAHEAD_DAYS = 7;
@@ -485,7 +488,7 @@ export default function App() {
   return (
     <div style={{ minHeight: "100vh", background: "#f5f5f5", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", color: "#1a1a1a", paddingBottom: 80 }}>
       {/* Header */}
-      <div style={{ background: "#fff", padding: "14px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid #f0f0f0", position: "sticky", top: 0, zIndex: 50 }}>
+      <div style={{ background: "#fff", height: HEADER_H, boxSizing: "border-box", padding: "0 20px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid #f0f0f0", position: "sticky", top: 0, zIndex: 50 }}>
         <div>
           <div style={{ fontWeight: 800, fontSize: 16 }}>Goethestrasse 31</div>
           <div style={{ fontSize: 11, color: "#aaa" }}>{t.loggedAs} <strong style={{ color: "#1a1a1a" }}>{user}</strong></div>
@@ -601,7 +604,7 @@ export default function App() {
         {/* CLEANING */}
         {activePage === "duty" && <>
           <h2 style={{ fontSize: 26, fontWeight: 800, marginBottom: 12 }}>{t.duty}</h2>
-          <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+          <div style={{ display: "flex", gap: 8, position: "sticky", top: HEADER_H, zIndex: 40, background: "#f5f5f5", margin: "0 -16px 8px", padding: "8px 16px 12px" }}>
             {[["cleaning", "🧹", t.cleaning], ["trash", "🗑", t.trash]].map(([id, emoji, label]) => (
               <button key={id} onClick={() => setDutyTab(id)} style={{ flex: 1, padding: "12px 8px", background: dutyTab === id ? "#1a1a1a" : "#fff", color: dutyTab === id ? "#fff" : "#666", border: dutyTab === id ? "2px solid #1a1a1a" : "2px solid #e5e5e5", borderRadius: 12, cursor: "pointer", fontSize: 13, fontWeight: 700 }}>{emoji} {label}</button>
             ))}
@@ -634,7 +637,7 @@ export default function App() {
           )}
 
           {cleanView === "list" && CLEANING_ROTATION.map((row, i) => (
-            <div key={i} ref={i === nextCleanIdx ? currentCleanRef : null} style={{ ...cardStyle, marginBottom: 8, padding: "14px 18px", cursor: "pointer", scrollMarginTop: 76, border: i === nextCleanIdx ? "2px solid #1a1a1a" : "2px solid transparent" }} onClick={() => setExpandedCleanRow(expandedCleanRow === i ? null : i)}>
+            <div key={i} ref={i === nextCleanIdx ? currentCleanRef : null} style={{ ...cardStyle, marginBottom: 8, padding: "14px 18px", cursor: "pointer", scrollMarginTop: SCROLL_TOP, border: i === nextCleanIdx ? "2px solid #1a1a1a" : "2px solid transparent" }} onClick={() => setExpandedCleanRow(expandedCleanRow === i ? null : i)}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <span style={{ fontWeight: 700, fontSize: 15 }}>{row.date} 2026{i === nextCleanIdx && <span style={{ marginLeft: 8, fontSize: 10, fontWeight: 700, color: "#fff", background: "#1a1a1a", borderRadius: 20, padding: "2px 8px", verticalAlign: "middle" }}>{daysToClean === 0 ? t.today : t.next}</span>}</span>
                 <span style={{ color: "#ccc", fontSize: 18 }}>{expandedCleanRow === i ? "−" : "+"}</span>
@@ -693,7 +696,7 @@ export default function App() {
           {trashView === "list" && TRASH_DUTY.map((td, i) => {
             const isCurr = isInTrashWeek(td, today);
             return (
-              <div key={i} ref={i === trashScrollIdx ? currentTrashRef : null} style={{ ...cardStyle, marginBottom: 8, padding: "14px 18px", border: isCurr ? "2px solid #1a1a1a" : "2px solid transparent", position: "relative", scrollMarginTop: 76 }}>
+              <div key={i} ref={i === trashScrollIdx ? currentTrashRef : null} style={{ ...cardStyle, marginBottom: 8, padding: "14px 18px", border: isCurr ? "2px solid #1a1a1a" : "2px solid transparent", position: "relative", scrollMarginTop: SCROLL_TOP }}>
                 {isCurr && <span style={{ position: "absolute", top: 14, right: 14, background: "#1a1a1a", color: "#fff", fontSize: 10, padding: "3px 8px", borderRadius: 20, fontWeight: 700 }}>{t.thisWeek}</span>}
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                   <div>
