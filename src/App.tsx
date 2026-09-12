@@ -266,7 +266,7 @@ function CalendarMonth({ year, month, trashData, cleanData, lang, user }) {
     });
     cleanData.forEach(r => {
       if (r.day.getDate() === d && r.day.getMonth() === month && r.day.getFullYear() === year) {
-        events.push({ type: "clean", label: (r[user] || "Cleaning") + (r.bio === user ? " + 🌿" : ""), person: user });
+        events.push({ type: "clean", label: (r[user] || "Cleaning") + (r.bio === user ? " + Bio" : ""), person: user });
       }
     });
     return events;
@@ -566,7 +566,7 @@ export default function App() {
                 {RESIDENTS.map(n => (
                   <div key={n} style={{ display: "flex", justifyContent: "space-between", padding: "5px 0", borderBottom: "1px solid #f5f5f5", fontSize: 14 }}>
                     <span style={{ fontWeight: n === user ? 700 : 400 }}>{n}</span>
-                    <span style={{ color: "#666" }}>{nextClean[n]}{nextClean.bio === n && <span style={{ color: "#16a34a", fontWeight: 700 }}> + 🌿 {t.bioBin}</span>}</span>
+                    <span style={{ color: "#666" }}>{nextClean[n]}{nextClean.bio === n && <span style={{ color: "#16a34a", fontWeight: 700 }}> + {t.bioBin}</span>}</span>
                   </div>
                 ))}
               </>
@@ -653,7 +653,7 @@ export default function App() {
               <div style={{ marginTop: 16, borderTop: "1px solid #f0f0f0", paddingTop: 16 }}>
                 {CLEANING_ROTATION.filter(r => r.day.getMonth() === cleanCalMonth).map((r, i) => (
                   <div key={i} style={{ padding: "10px 0", borderBottom: "1px solid #f5f5f5" }}>
-                    <div style={{ fontWeight: 700, fontSize: 14 }}>{r.date} — <span style={{ color: "#16a34a" }}>{r[user]}{r.bio === user && ` + 🌿 ${t.bioBin}`}</span></div>
+                    <div style={{ fontWeight: 700, fontSize: 14 }}>{r.date} — <span style={{ color: "#16a34a" }}>{r[user]}{r.bio === user && ` + ${t.bioBin}`}</span></div>
                   </div>
                 ))}
               </div>
@@ -668,19 +668,19 @@ export default function App() {
               </div>
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8 }}>
                 {RESIDENTS.map(n => (
-                  <span key={n} style={{ fontSize: 12, background: n === user ? "#1a1a1a" : "#f5f5f5", color: n === user ? "#fff" : "#666", borderRadius: 20, padding: "3px 10px", fontWeight: n === user ? 700 : 400 }}>{n}: {row[n]}{row.bio === n && " + 🌿"}</span>
+                  <span key={n} style={{ fontSize: 12, background: n === user ? "#1a1a1a" : "#f5f5f5", color: n === user ? "#fff" : "#666", borderRadius: 20, padding: "3px 10px", fontWeight: n === user ? 700 : 400 }}>{n}: {row[n]}{row.bio === n && " + Bio"}</span>
                 ))}
               </div>
               {expandedCleanRow === i && (
                 <div style={{ marginTop: 14, borderTop: "1px solid #f0f0f0", paddingTop: 14 }}>
                   {RESIDENTS.map(n => (
                     <div key={n} style={{ marginBottom: 12 }}>
-                      <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4, color: n === user ? "#1a1a1a" : "#555" }}>{n} — {row[n]}{row.bio === n && <span style={{ color: "#16a34a" }}> + 🌿 {t.bioBin}</span>}</div>
+                      <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4, color: n === user ? "#1a1a1a" : "#555" }}>{n} — {row[n]}{row.bio === n && <span style={{ color: "#16a34a" }}> + {t.bioBin}</span>}</div>
                       {(CLEANING_TASKS[row[n]] || []).map((task, ti) => (
                         <div key={ti} style={{ fontSize: 12, color: "#888", padding: "2px 0 2px 10px" }}>☐ {task}</div>
                       ))}
                       {row.bio === n && CLEANING_TASKS[BIO_BIN].map((task, ti) => (
-                        <div key={"bio" + ti} style={{ fontSize: 12, color: "#16a34a", padding: "2px 0 2px 10px" }}>☐ 🌿 {task}</div>
+                        <div key={"bio" + ti} style={{ fontSize: 12, color: "#16a34a", padding: "2px 0 2px 10px" }}>☐ {task}</div>
                       ))}
                     </div>
                   ))}
