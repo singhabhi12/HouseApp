@@ -25,7 +25,7 @@ const T = {
     residents: "Residents",
     joined: "joined",
     selectName: "Select your name to continue",
-    home: "Home", rules: "Rules", duty: "Duties", cleaning: "Cleaning", trash: "Trash", waste: "Waste", laws: "Laws", issues: "Issues", houseTab: "House", wasteTab: "Waste", lawsTab: "Laws", bioBin: "Bio bin",
+    home: "Home", rules: "Rules", duty: "Duties", cleaning: "Cleaning", trash: "Trash", waste: "Waste", laws: "Laws", issues: "Issues", houseTab: "House", wasteTab: "Waste", lawsTab: "Laws", bioBin: "Bio bin", leaves: "Leaves", leavesSub: "Late September to end of March: two people rake the leaves each week, alternating front and back yard.", frontYard: "Front yard", backYard: "Back yard", leavesThisWeek: "Leaves Duty This Week", leavesTask: "Rake and bag the leaves, sweep the path, put bags in the Biotonne.",
     trashThisWeek: "Trash Duty This Week",
     trashNextWeek: "Trash Duty Next Week",
     noTrashDuty: "No Trash Duty",
@@ -39,7 +39,7 @@ const T = {
     inDays: (n) => (n === 1 ? "in 1 day" : `in ${n} days`),
     tomorrow: "Tomorrow",
     quickReminders: "Quick Reminders",
-    rem1: "Quiet hours: 22:00–07:00 & Sundays all day",
+    rem1: "Quiet hours: 21:00–07:00 & Sundays all day",
     rem2: "Squeegee the shower glass after every shower",
     rem3: "Switch off lights when leaving a room",
     houseRules: "House Rules", hausordnung: "Hausordnung",
@@ -69,7 +69,7 @@ const T = {
     residents: "Bewohner",
     joined: "beigetreten",
     selectName: "Wähle deinen Namen aus",
-    home: "Start", rules: "Regeln", duty: "Pflichten", cleaning: "Reinigung", trash: "Müll", waste: "Trennung", laws: "Gesetze", issues: "Probleme", houseTab: "Haus", wasteTab: "Müll", lawsTab: "Gesetze", bioBin: "Biomüll-Eimer",
+    home: "Start", rules: "Regeln", duty: "Pflichten", cleaning: "Reinigung", trash: "Müll", waste: "Trennung", laws: "Gesetze", issues: "Probleme", houseTab: "Haus", wasteTab: "Müll", lawsTab: "Gesetze", bioBin: "Biomüll-Eimer", leaves: "Laub", leavesSub: "Ende September bis Ende März: jede Woche harken zwei Personen das Laub, abwechselnd Vorgarten und Garten hinten.", frontYard: "Vorgarten", backYard: "Garten hinten", leavesThisWeek: "Laubdienst diese Woche", leavesTask: "Laub harken und einsammeln, Weg fegen, Säcke in die Biotonne.",
     trashThisWeek: "Müllpflicht diese Woche",
     trashNextWeek: "Müllpflicht nächste Woche",
     noTrashDuty: "Keine Müllpflicht",
@@ -83,7 +83,7 @@ const T = {
     inDays: (n) => (n === 1 ? "in 1 Tag" : `in ${n} Tagen`),
     tomorrow: "Morgen",
     quickReminders: "Schnelle Erinnerungen",
-    rem1: "Ruhezeiten: 22:00–07:00 & Sonntags ganztägig",
+    rem1: "Ruhezeiten: 21:00–07:00 & Sonntags ganztägig",
     rem2: "Duschwand nach jeder Dusche abziehen",
     rem3: "Licht beim Verlassen des Raumes ausschalten",
     houseRules: "Hausordnung", hausordnung: "House Rules",
@@ -108,12 +108,12 @@ const T = {
 };
 
 const HOUSE_RULES = [
-  { en: "Quiet Hours", de: "Ruhezeiten", detail_en: "Weekdays 22:00–07:00 | Sundays & Public Holidays: all day | Midday: 13:00–15:00", detail_de: "Wochentags 22:00–07:00 | Sonn- und Feiertage: ganztägig | Mittagsruhe 13:00–15:00", icon: "🌙" },
+  { en: "Quiet Hours", de: "Ruhezeiten", detail_en: "Daily 21:00–07:00 | Sundays & Public Holidays: all day | Midday: 13:00–15:00", detail_de: "Täglich 21:00–07:00 | Sonn- und Feiertage: ganztägig | Mittagsruhe 13:00–15:00", icon: "🌙" },
   { en: "Guests", de: "Gäste", detail_en: "Inform the group chat at least ONE DAY BEFORE bringing guests.", detail_de: "Gäste mindestens einen Tag vorher in der Gruppe ankündigen.", icon: "👥" },
   { en: "Kitchen – After Cooking", de: "Küche – nach dem Kochen", detail_en: "Clean stovetop, oven, microwave and counter after every use.", detail_de: "Herd, Backofen, Mikrowelle und Arbeitsplatte nach jeder Benutzung reinigen.", icon: "🍳" },
   { en: "Lower Toilet – Shower Glass", de: "Unteres WC – Duschwand", detail_en: "Wipe the glass shower cabinet with the squeegee after every shower — no exceptions.", detail_de: "Nach jeder Dusche die Glaswand mit dem Abzieher abwischen — ausnahmslos.", icon: "🚿" },
   { en: "Lights & Energy", de: "Licht & Energie", detail_en: "Switch off all lights when leaving a room. No electronics on standby.", detail_de: "Licht beim Verlassen des Raumes ausschalten. Geräte nicht im Standby lassen.", icon: "💡" },
-  { en: "Noise & Music", de: "Lärm & Musik", detail_en: "Use headphones after 22:00. No drilling or loud DIY on Sundays or public holidays.", detail_de: "Nach 22:00 Kopfhörer benutzen. Keine Bohrarbeiten an Sonn- und Feiertagen.", icon: "🎵" },
+  { en: "Noise & Music", de: "Lärm & Musik", detail_en: "Always use headphones for music. For calls after 22:00, come down and talk in the living area — not in the gardens. No drilling or loud DIY on Sundays or public holidays.", detail_de: "Musik immer über Kopfhörer. Telefonate nach 22:00 unten im Wohnbereich führen — nicht im Garten. Keine Bohrarbeiten an Sonn- und Feiertagen.", icon: "🎵" },
   { en: "Common Areas", de: "Gemeinschaftsbereiche", detail_en: "Keep hallways, staircase and entrance clear. Shoes on the rack only.", detail_de: "Flure, Treppenhaus und Eingang frei halten. Schuhe immer auf das Regal.", icon: "🏠" },
   { en: "Laundry", de: "Wäsche", detail_en: "Collect laundry promptly. Do not leave wet laundry sitting in the drum.", detail_de: "Wäsche sofort nach dem Waschen aus der Maschine nehmen.", icon: "👕" },
   { en: "Cleaning Mops & Towels", de: "Putztücher & Mopps", detail_en: "After every biweekly cleaning: wash all mops, cloths and doormats. Dry in backyard.", detail_de: "Nach jeder Reinigung: Alle Putzmittel waschen, im Hinterhof trocknen, zurücklegen.", icon: "🧹" },
@@ -161,6 +161,25 @@ const BIO_BIN = "Bio bin";
     row.bio = pick;
     count[pick]++;
   });
+})();
+
+// Leaves duty (fall/winter): every week from late September to the end of March two
+// residents team up, alternating between the front and back yard. Pairs walk through
+// the resident list in order so everyone rotates evenly: (A,B), (C,D), (E,A), (B,C) ...
+const LEAVES_START = new Date(2026, 8, 28); // Mon 28 Sep 2026
+const LEAVES_END = new Date(2027, 2, 31);   // end of March 2027
+const LEAVES_DUTY: { week: string; startDay: Date; yard: "front" | "back"; people: string[] }[] = [];
+(() => {
+  const mon = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const fmt = (d: Date) => `${String(d.getDate()).padStart(2, "0")} ${mon[d.getMonth()]}`;
+  const addDays = (d: Date, n: number) => { const r = new Date(d); r.setDate(r.getDate() + n); return r; }; // DST-safe
+  let ptr = 0;
+  for (let i = 0, d = new Date(LEAVES_START); d <= LEAVES_END; i++, d = addDays(d, 7)) {
+    const end = addDays(d, 6);
+    const week = d.getMonth() === end.getMonth() ? `${String(d.getDate()).padStart(2, "0")}–${fmt(end)}` : `${fmt(d)}–${fmt(end)}`;
+    LEAVES_DUTY.push({ week, startDay: d, yard: i % 2 === 0 ? "front" : "back", people: [RESIDENTS[ptr % 5], RESIDENTS[(ptr + 1) % 5]] });
+    ptr += 2;
+  }
 })();
 
 const CLEANING_TASKS = {
@@ -355,6 +374,7 @@ export default function App() {
   const [cleanCalMonth, setCleanCalMonth] = useState(monthIndex(new Date()));
   const currentCleanRef = useRef(null);
   const currentTrashRef = useRef(null);
+  const currentLeavesRef = useRef(null);
 
   const t = T[lang];
 
@@ -419,6 +439,8 @@ export default function App() {
 
   // The week that today falls in — stays put through the whole Sunday.
   const currentTrash = TRASH_DUTY.find(td => isInTrashWeek(td, today));
+  const currentLeaves = LEAVES_DUTY.find(ld => isInTrashWeek(ld, today));
+  const leavesScrollIdx = LEAVES_DUTY.findIndex(ld => isInTrashWeek(ld, today) || daysBetween(today, ld.startDay) > 0);
   // Only outside the published weeks do we look ahead, and never further than a week.
   const upcomingTrash = currentTrash ? null : TRASH_DUTY.find(td => {
     const n = daysBetween(today, td.startDay);
@@ -447,6 +469,10 @@ export default function App() {
     if (trashView !== "list") return;
     currentTrashRef.current?.scrollIntoView({ block: "start" });
   }, [activePage, dutyTab, trashView]);
+  useEffect(() => {
+    if (activePage !== "duty" || dutyTab !== "leaves" || leavesScrollIdx < 0) return;
+    currentLeavesRef.current?.scrollIntoView({ block: "start" });
+  }, [activePage, dutyTab]);
 
   const btnStyle = (active) => ({ padding: "10px 0", flex: 1, background: active ? "#1a1a1a" : "transparent", border: "none", borderRadius: 8, color: active ? "#fff" : "#999", cursor: "pointer", fontSize: 12, fontWeight: 600, transition: "all 0.15s" });
   const cardStyle = { background: "#fff", borderRadius: 16, padding: 20, marginBottom: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.07)" };
@@ -585,6 +611,16 @@ export default function App() {
             )}
           </div>
 
+          {/* Leaves (fall/winter only) */}
+          {currentLeaves && (
+            <div style={{ ...cardStyle, borderLeft: "4px solid #c2410c" }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "#c2410c", marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>🍂 {t.leavesThisWeek}</div>
+              <div style={{ fontSize: 22, fontWeight: 800, marginBottom: 4 }}>{currentLeaves.people.join(" & ")}</div>
+              <div style={{ fontSize: 13, color: "#888", marginBottom: 6 }}>{currentLeaves.yard === "front" ? "🏡 " + t.frontYard : "🌳 " + t.backYard} · {t.week}: {currentLeaves.week}</div>
+              {currentLeaves.people.includes(user) && <div style={{ fontSize: 13, color: "#555" }}>☐ {t.leavesTask}</div>}
+            </div>
+          )}
+
           {/* Cleaning */}
           <div style={{ ...cardStyle, borderLeft: "4px solid #16a34a" }}>
             {cleanIsDue ? (
@@ -661,7 +697,7 @@ export default function App() {
         {activePage === "duty" && <>
           <h2 style={{ fontSize: 26, fontWeight: 800, marginBottom: 12 }}>{t.duty}</h2>
           <div style={{ display: "flex", gap: 8, position: "sticky", top: HEADER_H, zIndex: 40, background: "#f5f5f5", margin: "0 -16px 8px", padding: "8px 16px 12px" }}>
-            {[["cleaning", "🧹", t.cleaning], ["trash", "🗑", t.trash]].map(([id, emoji, label]) => (
+            {[["cleaning", "🧹", t.cleaning], ["trash", "🗑", t.trash], ["leaves", "🍂", t.leaves]].map(([id, emoji, label]) => (
               <button key={id} onClick={() => setDutyTab(id)} style={{ flex: 1, padding: "12px 8px", background: dutyTab === id ? "#1a1a1a" : "#fff", color: dutyTab === id ? "#fff" : "#666", border: dutyTab === id ? "2px solid #1a1a1a" : "2px solid #e5e5e5", borderRadius: 12, cursor: "pointer", fontSize: 13, fontWeight: 700 }}>{emoji} {label}</button>
             ))}
           </div>
@@ -773,6 +809,28 @@ export default function App() {
         </>}
 
         {/* WASTE */}
+        {/* LEAVES */}
+        {activePage === "duty" && dutyTab === "leaves" && <>
+          <p style={{ color: "#999", fontSize: 13, marginBottom: 16 }}>{t.leavesSub}</p>
+          {LEAVES_DUTY.map((ld, i) => {
+            const isCurr = isInTrashWeek(ld, today);
+            const mine = ld.people.includes(user);
+            return (
+              <div key={i} ref={i === leavesScrollIdx ? currentLeavesRef : null} style={{ ...cardStyle, marginBottom: 8, padding: "14px 18px", border: isCurr ? "2px solid #1a1a1a" : "2px solid transparent", position: "relative", scrollMarginTop: SCROLL_TOP }}>
+                {isCurr && <span style={{ position: "absolute", top: 14, right: 14, background: "#1a1a1a", color: "#fff", fontSize: 10, padding: "3px 8px", borderRadius: 20, fontWeight: 700 }}>{t.thisWeek}</span>}
+                <div style={{ fontSize: 12, color: "#aaa", marginBottom: 2 }}>{ld.week} {ld.startDay.getFullYear()}</div>
+                <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 8 }}>{ld.yard === "front" ? "🏡 " + t.frontYard : "🌳 " + t.backYard}</div>
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                  {ld.people.map(n => (
+                    <span key={n} style={{ fontSize: 12, background: n === user ? "#1a1a1a" : "#f5f5f5", color: n === user ? "#fff" : "#666", borderRadius: 20, padding: "3px 10px", fontWeight: n === user ? 700 : 400 }}>{n}</span>
+                  ))}
+                </div>
+                {mine && isCurr && <div style={{ marginTop: 10, fontSize: 12, color: "#888" }}>☐ {t.leavesTask}</div>}
+              </div>
+            );
+          })}
+        </>}
+
         {activePage === "rules" && rulesTab === "waste" && <>
           <div style={{ fontSize: 17, fontWeight: 800, marginBottom: 16 }}>{t.wasteGuide}</div>
           <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
