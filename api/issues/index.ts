@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { db, json, SECTIONS, RESIDENTS, MAX_PHOTO_BYTES } from "../_db";
+import { db, json, SECTIONS, RESIDENTS, MAX_PHOTO_BYTES } from "../_db.js";
 
 export const config = { api: { bodyParser: { sizeLimit: "5mb" } } };
 

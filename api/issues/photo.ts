@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { db, json } from "../_db";
+import { db, json } from "../_db.js";
 
 // GET /api/issues/photo?id=123 → the raw image bytes for that issue.
 export default async function handler(req: VercelRequest, res: VercelResponse) {
