@@ -25,7 +25,7 @@ const T = {
     residents: "Residents",
     joined: "joined",
     selectName: "Select your name to continue",
-    home: "Home", rules: "Rules", duty: "Duties", cleaning: "Cleaning", trash: "Trash", waste: "Waste", laws: "Laws", issues: "Issues", houseTab: "House", wasteTab: "Waste", lawsTab: "Laws",
+    home: "Home", rules: "Rules", duty: "Duties", cleaning: "Cleaning", trash: "Trash", waste: "Waste", laws: "Laws", issues: "Issues", houseTab: "House", wasteTab: "Waste", lawsTab: "Laws", bioBin: "Bio bin",
     trashThisWeek: "Trash Duty This Week",
     trashNextWeek: "Trash Duty Next Week",
     noTrashDuty: "No Trash Duty",
@@ -69,7 +69,7 @@ const T = {
     residents: "Bewohner",
     joined: "beigetreten",
     selectName: "Wähle deinen Namen aus",
-    home: "Start", rules: "Regeln", duty: "Pflichten", cleaning: "Reinigung", trash: "Müll", waste: "Trennung", laws: "Gesetze", issues: "Probleme", houseTab: "Haus", wasteTab: "Müll", lawsTab: "Gesetze",
+    home: "Start", rules: "Regeln", duty: "Pflichten", cleaning: "Reinigung", trash: "Müll", waste: "Trennung", laws: "Gesetze", issues: "Probleme", houseTab: "Haus", wasteTab: "Müll", lawsTab: "Gesetze", bioBin: "Biomüll-Eimer",
     trashThisWeek: "Müllpflicht diese Woche",
     trashNextWeek: "Müllpflicht nächste Woche",
     noTrashDuty: "Keine Müllpflicht",
@@ -123,7 +123,7 @@ const HOUSE_RULES = [
   { en: "Damage & Maintenance", de: "Schäden", detail_en: "Report any damage or malfunction to the group immediately — do not wait.", detail_de: "Schäden oder Defekte sofort in der Gruppe melden.", icon: "🔧" },
 ];
 
-const CLEANING_ROTATION = [
+const CLEANING_ROTATION: { date: string; day: Date; bio?: string; [resident: string]: any }[] = [
   { date: "30 May", day: new Date(2026,4,30), Abhishek: "Kitchen", Vishwa: "Lower WC", Anas: "Upper WC", Arunima: "Hall/Dining", Eesha: "Common" },
   { date: "13 Jun", day: new Date(2026,5,13), Abhishek: "Common", Vishwa: "Kitchen", Anas: "Hall/Dining", Arunima: "Lower WC", Eesha: "Upper WC" },
   { date: "27 Jun", day: new Date(2026,5,27), Abhishek: "Upper WC", Vishwa: "Common", Anas: "Lower WC", Arunima: "Kitchen", Eesha: "Hall/Dining" },
@@ -142,12 +142,26 @@ const CLEANING_ROTATION = [
   { date: "26 Dec", day: new Date(2026,11,26), Abhishek: "Kitchen", Vishwa: "Lower WC", Anas: "Upper WC", Arunima: "Hall/Dining", Eesha: "Common" },
 ];
 
+// Bio dustbin duty is an extra job on each cleaning day. It goes to whoever has
+// done it least so far (ties broken by resident order), never to the person who
+// already has the Kitchen that day.
+const BIO_BIN = "Bio bin";
+(() => {
+  const count = Object.fromEntries(RESIDENTS.map((n) => [n, 0]));
+  CLEANING_ROTATION.forEach((row) => {
+    const pick = RESIDENTS.filter((n) => row[n] !== "Kitchen").sort((a, b) => count[a] - count[b])[0];
+    row.bio = pick;
+    count[pick]++;
+  });
+})();
+
 const CLEANING_TASKS = {
   Kitchen: ["Deep clean the stove", "Pull out dishwasher & stove, clean behind", "Clean upper ceramic cabinets", "Vacuum + mop the floor", "Scrub the sink", "Clean extractor hood net", "Wash the hand towels"],
   "Upper WC": ["Clean the bathtub", "Remove hair from the drain", "Clean toilet bowl", "Clean basin", "Clean mirror", "Clean all taps", "Mop the floor", "Wash the hand towels", "Wash & dry doormats/mops"],
   "Lower WC": ["Clean toilet bowl", "Wipe glass shower with squeegee", "Clean shower/bathing area", "Remove hair from the drain", "Clean all taps", "Clean mirror", "Mop the floor", "Wash the hand towels", "Wash & dry doormats/mops"],
   "Hall/Dining": ["Dust sofas, cabinets & wooden shelves", "Vacuum floor in dining & hall", "Clean dining table top", "Clean glass wall (hall)", "Dust shelves and furniture"],
   Common: ["Vacuum upper corridor", "Vacuum lower corridor", "Vacuum staircase", "Clean shoe rack area", "Wipe bannisters & door handles"],
+  [BIO_BIN]: ["Empty the kitchen bio bin", "Wash the bio bin with hot water & soap", "Dry it and put in a fresh liner", "Rinse the outside Biotonne lid if dirty"],
 };
 
 const TRASH_DUTY = [
@@ -252,7 +266,7 @@ function CalendarMonth({ year, month, trashData, cleanData, lang, user }) {
     });
     cleanData.forEach(r => {
       if (r.day.getDate() === d && r.day.getMonth() === month && r.day.getFullYear() === year) {
-        events.push({ type: "clean", label: r[user] || "Cleaning", person: user });
+        events.push({ type: "clean", label: (r[user] || "Cleaning") + (r.bio === user ? " + 🌿" : ""), person: user });
       }
     });
     return events;
@@ -552,7 +566,7 @@ export default function App() {
                 {RESIDENTS.map(n => (
                   <div key={n} style={{ display: "flex", justifyContent: "space-between", padding: "5px 0", borderBottom: "1px solid #f5f5f5", fontSize: 14 }}>
                     <span style={{ fontWeight: n === user ? 700 : 400 }}>{n}</span>
-                    <span style={{ color: "#666" }}>{nextClean[n]}</span>
+                    <span style={{ color: "#666" }}>{nextClean[n]}{nextClean.bio === n && <span style={{ color: "#16a34a", fontWeight: 700 }}> + 🌿 {t.bioBin}</span>}</span>
                   </div>
                 ))}
               </>
@@ -639,7 +653,7 @@ export default function App() {
               <div style={{ marginTop: 16, borderTop: "1px solid #f0f0f0", paddingTop: 16 }}>
                 {CLEANING_ROTATION.filter(r => r.day.getMonth() === cleanCalMonth).map((r, i) => (
                   <div key={i} style={{ padding: "10px 0", borderBottom: "1px solid #f5f5f5" }}>
-                    <div style={{ fontWeight: 700, fontSize: 14 }}>{r.date} — <span style={{ color: "#16a34a" }}>{r[user]}</span></div>
+                    <div style={{ fontWeight: 700, fontSize: 14 }}>{r.date} — <span style={{ color: "#16a34a" }}>{r[user]}{r.bio === user && ` + 🌿 ${t.bioBin}`}</span></div>
                   </div>
                 ))}
               </div>
@@ -654,16 +668,19 @@ export default function App() {
               </div>
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8 }}>
                 {RESIDENTS.map(n => (
-                  <span key={n} style={{ fontSize: 12, background: n === user ? "#1a1a1a" : "#f5f5f5", color: n === user ? "#fff" : "#666", borderRadius: 20, padding: "3px 10px", fontWeight: n === user ? 700 : 400 }}>{n}: {row[n]}</span>
+                  <span key={n} style={{ fontSize: 12, background: n === user ? "#1a1a1a" : "#f5f5f5", color: n === user ? "#fff" : "#666", borderRadius: 20, padding: "3px 10px", fontWeight: n === user ? 700 : 400 }}>{n}: {row[n]}{row.bio === n && " + 🌿"}</span>
                 ))}
               </div>
               {expandedCleanRow === i && (
                 <div style={{ marginTop: 14, borderTop: "1px solid #f0f0f0", paddingTop: 14 }}>
                   {RESIDENTS.map(n => (
                     <div key={n} style={{ marginBottom: 12 }}>
-                      <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4, color: n === user ? "#1a1a1a" : "#555" }}>{n} — {row[n]}</div>
+                      <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4, color: n === user ? "#1a1a1a" : "#555" }}>{n} — {row[n]}{row.bio === n && <span style={{ color: "#16a34a" }}> + 🌿 {t.bioBin}</span>}</div>
                       {(CLEANING_TASKS[row[n]] || []).map((task, ti) => (
                         <div key={ti} style={{ fontSize: 12, color: "#888", padding: "2px 0 2px 10px" }}>☐ {task}</div>
+                      ))}
+                      {row.bio === n && CLEANING_TASKS[BIO_BIN].map((task, ti) => (
+                        <div key={"bio" + ti} style={{ fontSize: 12, color: "#16a34a", padding: "2px 0 2px 10px" }}>☐ 🌿 {task}</div>
                       ))}
                     </div>
                   ))}
